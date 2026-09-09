@@ -33,6 +33,7 @@ class AuthService extends GetxService {
   Future<void> signIn(String email, String password) async {
     print('🔑 Login email… ($email)');
     try {
+      
       final cred = await _auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password,

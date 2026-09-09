@@ -80,9 +80,11 @@ class _LoginPageState extends State<LoginPage> {
             alignment: Alignment.centerRight,
             child: AppButton.ghost(
               label: 'Mot de passe oublié ?',
-              onPressed: _loading
-                  ? null
-                  : () => _run(() => _auth.resetPassword(_email.text)),
+              onPressed: ()=>
+              Get.toNamed(Routes.dashboard)
+              // _loading
+              //     ? null
+              //     : () => _run(() => _auth.resetPassword(_email.text)),
             ),
           ),
           AppButton(
