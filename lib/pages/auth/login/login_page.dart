@@ -3,6 +3,11 @@ import 'package:get/get.dart';
 
 import '../../../routes/app_routes.dart';
 import '../../../services/auth_service.dart';
+import '../../../theme/app_colors.dart';
+import '../../../widgets/app_button.dart';
+import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/app_text_field.dart';
+import '../../../widgets/gap.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -38,68 +43,66 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            const SizedBox(height: 48),
-            Text(
-              'StudyPair',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+    return AppScaffold(
+      body: AppPageScroll(
+        children: [
+          const VGap.xxl(),
+          Text(
+            'StudyPair',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+          ),
+          const VGap.sm(),
+          const Text(
+            'Connecte-toi pour trouver un binôme',
+            style: TextStyle(color: AppColors.textSecondary),
+          ),
+          const VGap.xxl(),
+          AppTextField(
+            controller: _email,
+            label: 'Email',
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+          ),
+          const VGap.md(),
+          AppTextField(
+            controller: _password,
+            label: 'Mot de passe',
+            obscureText: true,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _run(
+              () => _auth.signIn(_email.text, _password.text),
             ),
-            const SizedBox(height: 8),
-            const Text('Connecte-toi pour trouver un binôme'),
-            const SizedBox(height: 32),
-            TextField(
-              controller: _email,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _password,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Mot de passe'),
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: _loading
-                    ? null
-                    : () => _run(() => _auth.resetPassword(_email.text)),
-                child: const Text('Mot de passe oublié ?'),
-              ),
-            ),
-            ElevatedButton(
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: AppButton.ghost(
+              label: 'Mot de passe oublié ?',
               onPressed: _loading
                   ? null
-                  : () => _run(
-                      () => _auth.signIn(_email.text, _password.text),
-                    ),
-              child: _loading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Se connecter'),
+                  : () => _run(() => _auth.resetPassword(_email.text)),
             ),
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: _loading
-                  ? null
-                  : () => _run(_auth.signInWithGoogle),
-              child: const Text('Continuer avec Google'),
+          ),
+          AppButton(
+            label: 'Se connecter',
+            loading: _loading,
+            onPressed: () => _run(
+              () => _auth.signIn(_email.text, _password.text),
             ),
-            TextButton(
-              onPressed: () => Get.toNamed(Routes.register),
-              child: const Text('Créer un compte'),
-            ),
-          ],
-        ),
+          ),
+          const VGap.md(),
+          AppButton.secondary(
+            label: 'Continuer avec Google',
+            loading: _loading,
+            onPressed: () => _run(_auth.signInWithGoogle),
+          ),
+          AppButton.ghost(
+            label: 'Créer un compte',
+            onPressed: () => Get.toNamed(Routes.register),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../widgets/app_scaffold.dart';
 import 'chats/chats_page.dart';
 import 'dashboard_controller.dart';
 import 'home/home_page.dart';
@@ -22,7 +23,9 @@ class DashboardPage extends GetView<DashboardController> {
   @override
   Widget build(BuildContext context) {
     return Obx(
-      () => Scaffold(
+      () => AppScaffold(
+        safeTop: false,
+        safeBottom: false,
         body: IndexedStack(
           index: controller.currentIndex.value,
           children: _tabs,

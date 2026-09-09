@@ -1,6 +1,16 @@
 import 'package:flutter/painting.dart';
 
 /// Espacements cohérents pour StudyPair.
+///
+/// Exemple :
+/// ```dart
+/// Padding(
+///   padding: AppSpacing.page, // EdgeInsets.all(24)
+///   child: ...,
+/// )
+///
+/// SizedBox(height: AppSpacing.lg) // 16
+/// ```
 abstract class AppSpacing {
   static const double xs = 4;
   static const double sm = 8;

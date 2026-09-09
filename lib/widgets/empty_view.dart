@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
 import '../utils/app_spacing.dart';
+import 'app_button.dart';
 
 /// État vide centré (liste sans données, etc.).
+///
+/// Exemple :
+/// ```dart
+/// EmptyView(
+///   message: 'Aucun match pour le moment',
+///   icon: Icons.favorite_border,
+///   actionLabel: 'Découvrir des mentors',
+///   onAction: () => controller.refresh(),
+/// )
+/// ```
 class EmptyView extends StatelessWidget {
   const EmptyView({
     super.key,
@@ -26,18 +38,22 @@ class EmptyView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 56, color: theme.colorScheme.outline),
+            Icon(icon, size: 56, color: AppColors.textTertiary),
             const SizedBox(height: AppSpacing.lg),
             Text(
               message,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+                color: AppColors.textSecondary,
               ),
             ),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: AppSpacing.xl),
-              ElevatedButton(onPressed: onAction, child: Text(actionLabel!)),
+              AppButton(
+                label: actionLabel!,
+                onPressed: onAction,
+                expanded: false,
+              ),
             ],
           ],
         ),
