@@ -26,47 +26,65 @@ class DashboardBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
+  static const _items = <({IconData icon, String label})>[
+    (icon: Icons.home_rounded, label: 'Accueil'),
+    (icon: Icons.favorite_rounded, label: 'Matchs'),
+    (icon: Icons.calendar_month_rounded, label: 'Planning'),
+    (icon: Icons.chat_bubble_rounded, label: 'Messages'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border)),
+      padding: const EdgeInsets.only(top: 10),
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.2),
+            spreadRadius: 5,
+            blurRadius: 7,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      child: SafeArea(
-        top: false,
-        child: BottomNavigationBar(
-          currentIndex: currentIndex,
-          onTap: onTap,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: AppColors.surface,
-          elevation: 0,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textTertiary,
-          selectedFontSize: 11,
-          unselectedFontSize: 11,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home_rounded),
-              label: 'Accueil',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_border_rounded),
-              activeIcon: Icon(Icons.favorite_rounded),
-              label: 'Matchs',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline_rounded),
-              activeIcon: Icon(Icons.chat_bubble_rounded),
-              label: 'Messages',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline_rounded),
-              activeIcon: Icon(Icons.person_rounded),
-              label: 'Profil',
-            ),
-          ],
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+        child: SafeArea(
+          top: false,
+          child: BottomNavigationBar(
+            currentIndex: currentIndex,
+            onTap: onTap,
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: AppColors.surface,
+            elevation: 0,
+            selectedItemColor: AppColors.primary,
+            unselectedItemColor: Colors.grey.withValues(alpha: 0.8),
+            selectedFontSize: 11,
+            unselectedFontSize: 11,
+            items: _items.asMap().entries.map((entry) {
+              final i = entry.key;
+              final item = entry.value;
+              final isHome = i == 0;
+
+              return BottomNavigationBarItem(
+                icon: isHome
+                    ? Icon(item.icon, size: 40)
+                    : Container(
+                        padding: const EdgeInsets.all(5),
+                        margin: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.grey.withValues(alpha: 0.3),
+                        ),
+                        child: Icon(item.icon),
+                      ),
+                label: item.label,
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
