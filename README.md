@@ -66,7 +66,7 @@ Pour la première version livrable de l'application (fin du Sprint 1), le **MVP*
 | | |
 |---|---|
 | **Date de début** | 8 septembre 2026 |
-| **Date de fin prévue** | 15 décembre 2026 |
+| **Date de fin prévue** | 15 septembre 2026 |
 
 ---
 
