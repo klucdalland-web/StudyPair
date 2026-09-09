@@ -24,6 +24,7 @@ class DashboardPage extends GetView<DashboardController> {
   Widget build(BuildContext context) {
     return Obx(
       () => AppScaffold(
+        backgroundColor:  Color(0xFF5F67EA),
         safeTop: false,
         safeBottom: false,
         body: IndexedStack(
