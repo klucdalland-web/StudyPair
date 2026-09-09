@@ -6,7 +6,7 @@ import 'chats/chats_page.dart';
 import 'dashboard_controller.dart';
 import 'home/home_page.dart';
 import 'match/match_page.dart';
-import 'profile/profile_page.dart';
+import 'planning/planning_page.dart';
 import 'widgets/dashboard_bottom_nav.dart';
 
 /// Shell après auth : onglets + bottom navigation.
@@ -16,14 +16,15 @@ class DashboardPage extends GetView<DashboardController> {
   static const _tabs = <Widget>[
     HomePage(),
     MatchPage(),
+    PlanningPage(),
     ChatsPage(),
-    ProfilePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Obx(
       () => AppScaffold(
+        backgroundColor:  Color(0xFF5F67EA),
         safeTop: false,
         safeBottom: false,
         body: IndexedStack(

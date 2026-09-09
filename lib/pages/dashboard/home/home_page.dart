@@ -14,26 +14,61 @@ class HomePage extends StatelessWidget {
     final auth = Get.find<AuthService>();
 
     return AppTabScaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Obx(() {
-          final name = auth.user.value?.displayName ?? 'toi';
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+       backgroundColor: Color(0xFF5F67EA),
+      body:SingleChildScrollView(
+        child: Stack(
+          children:[
+           
+           Column(
             children: [
-              Text(
-                'Bonjour $name',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const VGap.sm(),
-              const Text(
-                'Trouve un partenaire pour réviser.',
-                style: TextStyle(color: AppColors.textSecondary),
-              ),
+              Container(
+                color: Colors.red,
+                height: 200
+                ,
+              )
+            ,
+            Container(
+                decoration: BoxDecoration(
+                   color: Colors.white,
+                   borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20)
+                   )
+                ),
+             
+              height: 700,
+            )
+              
+                       
+
             ],
-          );
-        }),
+           )
+            
+           
+          ]
+        )
       ),
+      
+      // Padding(
+      //   padding: const EdgeInsets.all(24),
+      //   child: Obx(() {
+      //     final name = auth.user.value?.displayName ?? 'toi';
+      //     return Column(
+      //       crossAxisAlignment: CrossAxisAlignment.stretch,
+      //       children: [
+      //         Text(
+      //           'Bonjour $name',
+      //           style: Theme.of(context).textTheme.headlineSmall,
+      //         ),
+      //         const VGap.sm(),
+      //         const Text(
+      //           'Trouve un partenaire pour réviser.',
+      //           style: TextStyle(color: AppColors.textSecondary),
+      //         ),
+      //       ],
+      //     );
+      //   }),
+      // ),
     );
   }
 }
