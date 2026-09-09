@@ -3,6 +3,9 @@ import 'package:get/get.dart';
 
 import '../../../routes/app_routes.dart';
 import '../../../services/auth_service.dart';
+import '../../../theme/app_colors.dart';
+import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/loading_view.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -28,19 +31,23 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return const AppScaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.school, size: 64),
+            Icon(Icons.school_rounded, size: 64, color: AppColors.primary),
             SizedBox(height: 16),
             Text(
               'StudyPair',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
             SizedBox(height: 24),
-            CircularProgressIndicator(),
+            AppLoader(size: 28),
           ],
         ),
       ),
