@@ -38,6 +38,7 @@ class Gap extends StatelessWidget {
 class VGap extends StatelessWidget {
   const VGap(this.height, {super.key});
 
+  const VGap.xs({super.key}) : height = AppSpacing.xs;
   const VGap.sm({super.key}) : height = AppSpacing.sm;
   const VGap.md({super.key}) : height = AppSpacing.md;
   const VGap.lg({super.key}) : height = AppSpacing.lg;
@@ -65,6 +66,7 @@ class VGap extends StatelessWidget {
 class HGap extends StatelessWidget {
   const HGap(this.width, {super.key});
 
+  const HGap.xs({super.key}) : width = AppSpacing.xs;
   const HGap.sm({super.key}) : width = AppSpacing.sm;
   const HGap.md({super.key}) : width = AppSpacing.md;
   const HGap.lg({super.key}) : width = AppSpacing.lg;
@@ -147,4 +149,3 @@ class HGap extends StatelessWidget {
 //   const Gap.md()   ==  const SizedBox(height: 12, width: 12)
 //
 // =============================================================================
-

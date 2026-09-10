@@ -48,4 +48,10 @@ abstract class AppColors {
 
   // Shadows
   static const Color shadow = Color(0x1A1A1A2E);
+
+  // Inputs
+  static const Color inputBackground = Color(0xFFEFF4FF);
+
+  // Icones
+  static const Color blueIcon = Color(0xFFD3E4FE);
 }

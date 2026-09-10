@@ -15,7 +15,9 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('🔥 Firebase OK — project: ${DefaultFirebaseOptions.currentPlatform.projectId}');
+    print(
+      '🔥 Firebase OK — project: ${DefaultFirebaseOptions.currentPlatform.projectId}',
+    );
     print('📱 App ID: ${DefaultFirebaseOptions.currentPlatform.appId}');
   } catch (e, st) {
     print('❌ Firebase FAIL — init impossible');
@@ -41,10 +43,7 @@ class StudyPairApp extends StatelessWidget {
       initialBinding: InitialBinding(),
       initialRoute: AppPages.initial,
       getPages: AppPages.routes,
-      unknownRoute: GetPage(
-        name: '/not-found',
-        page: () => const SplashPage(),
-      ),
+      unknownRoute: GetPage(name: '/not-found', page: () => const SplashPage()),
       defaultTransition: Transition.cupertino,
     );
   }

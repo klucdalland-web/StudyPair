@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 
+import 'package:study_pair/widgets/app_text.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_radii.dart';
 import 'loading_view.dart';
 
 enum AppButtonVariant { primary, secondary, ghost, danger }
 
-/// Bouton StudyPair (plein, soft, ghost, danger) avec état loading.
+/// Bouton StudyPair avec plusieurs variantes :
+/// primary, secondary, ghost et danger.
+///
+/// Supporte également un état de chargement.
 ///
 /// Exemple :
-/// ```dart
+///
 /// AppButton(
 ///   label: 'Se connecter',
 ///   loading: _loading,
@@ -32,7 +37,6 @@ enum AppButtonVariant { primary, secondary, ghost, danger }
 ///   icon: Icons.delete_outline,
 ///   onPressed: _delete,
 /// )
-/// ```
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
@@ -82,11 +86,13 @@ class AppButton extends StatelessWidget {
     final effectiveVariant = outlined && variant == AppButtonVariant.primary
         ? AppButtonVariant.secondary
         : variant;
+
     final handler = loading ? null : onPressed;
 
-    final child = loading
+    final Widget child = loading
         ? ButtonSpinner(
-            color: effectiveVariant == AppButtonVariant.primary ||
+            color:
+                effectiveVariant == AppButtonVariant.primary ||
                     effectiveVariant == AppButtonVariant.danger
                 ? AppColors.textOnPrimary
                 : AppColors.primary,
@@ -99,53 +105,53 @@ class AppButton extends StatelessWidget {
                 Icon(icon, size: 18),
                 const SizedBox(width: 8),
               ],
-              Text(label),
+              AppText(label),
             ],
           );
 
-    final button = switch (effectiveVariant) {
+    final Widget button = switch (effectiveVariant) {
       AppButtonVariant.primary => ElevatedButton(
-          onPressed: handler,
-          style: ElevatedButton.styleFrom(
-            minimumSize: Size(expanded ? double.infinity : 0, height),
-            padding: EdgeInsets.symmetric(horizontal: expanded ? 16 : 20),
-          ),
-          child: child,
+        onPressed: handler,
+        style: ElevatedButton.styleFrom(
+          minimumSize: Size(expanded ? double.infinity : 0, height),
+          padding: EdgeInsets.symmetric(horizontal: expanded ? 16 : 20),
         ),
+        child: child,
+      ),
       AppButtonVariant.secondary => ElevatedButton(
-          onPressed: handler,
-          style: ElevatedButton.styleFrom(
-            elevation: 0,
-            backgroundColor: AppColors.primarySoft,
-            foregroundColor: AppColors.primary,
-            disabledBackgroundColor: AppColors.surfaceAlt,
-            disabledForegroundColor: AppColors.textTertiary,
-            minimumSize: Size(expanded ? double.infinity : 0, height),
-            padding: EdgeInsets.symmetric(horizontal: expanded ? 16 : 20),
-            shape: const RoundedRectangleBorder(borderRadius: AppRadii.mdAll),
-          ),
-          child: child,
+        onPressed: handler,
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          backgroundColor: AppColors.primarySoft,
+          foregroundColor: AppColors.primary,
+          disabledBackgroundColor: AppColors.surfaceAlt,
+          disabledForegroundColor: AppColors.textTertiary,
+          minimumSize: Size(expanded ? double.infinity : 0, height),
+          padding: EdgeInsets.symmetric(horizontal: expanded ? 16 : 20),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadii.mdAll),
         ),
+        child: child,
+      ),
       AppButtonVariant.ghost => TextButton(
-          onPressed: handler,
-          style: TextButton.styleFrom(
-            minimumSize: Size(expanded ? double.infinity : 0, height),
-            padding: EdgeInsets.symmetric(horizontal: expanded ? 16 : 12),
-          ),
-          child: child,
+        onPressed: handler,
+        style: TextButton.styleFrom(
+          minimumSize: Size(expanded ? double.infinity : 0, height),
+          padding: EdgeInsets.symmetric(horizontal: expanded ? 16 : 12),
         ),
+        child: child,
+      ),
       AppButtonVariant.danger => ElevatedButton(
-          onPressed: handler,
-          style: ElevatedButton.styleFrom(
-            elevation: 0,
-            backgroundColor: AppColors.danger,
-            foregroundColor: AppColors.textOnPrimary,
-            minimumSize: Size(expanded ? double.infinity : 0, height),
-            padding: EdgeInsets.symmetric(horizontal: expanded ? 16 : 20),
-            shape: const RoundedRectangleBorder(borderRadius: AppRadii.mdAll),
-          ),
-          child: child,
+        onPressed: handler,
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          backgroundColor: AppColors.danger,
+          foregroundColor: AppColors.textOnPrimary,
+          minimumSize: Size(expanded ? double.infinity : 0, height),
+          padding: EdgeInsets.symmetric(horizontal: expanded ? 16 : 20),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadii.mdAll),
         ),
+        child: child,
+      ),
     };
 
     return button;

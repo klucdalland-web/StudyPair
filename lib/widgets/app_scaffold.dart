@@ -86,7 +86,8 @@ class AppScaffold extends StatelessWidget {
     final canPop = Navigator.of(context).canPop();
     final wantBack = showBackButton ?? canPop;
 
-    final preferredAppBar = appBar ??
+    final preferredAppBar =
+        appBar ??
         (title != null
             ? AppTopBar(
                 title: title!,
@@ -107,8 +108,9 @@ class AppScaffold extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness:
-            _isCupertino ? Brightness.dark : Brightness.dark,
+        statusBarIconBrightness: _isCupertino
+            ? Brightness.dark
+            : Brightness.dark,
         statusBarBrightness: Brightness.light,
         systemNavigationBarColor: AppColors.surface,
         systemNavigationBarIconBrightness: Brightness.dark,
@@ -190,19 +192,18 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          leading: leading ??
+          leading:
+              leading ??
               (showBackButton
                   ? CupertinoNavigationBarBackButton(
                       color: AppColors.primary,
-                      onPressed: onBack ?? () => Navigator.of(context).maybePop(),
+                      onPressed:
+                          onBack ?? () => Navigator.of(context).maybePop(),
                     )
                   : null),
           trailing: actions == null || actions!.isEmpty
               ? null
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: actions!,
-                ),
+              : Row(mainAxisSize: MainAxisSize.min, children: actions!),
         ),
       );
     }
@@ -211,7 +212,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(title),
       backgroundColor: bg,
       centerTitle: centerTitle ?? false,
-      leading: leading ??
+      leading:
+          leading ??
           (showBackButton
               ? IconButton(
                   icon: const Icon(Icons.arrow_back_rounded),
@@ -259,7 +261,8 @@ class AppPageScroll extends StatelessWidget {
     return ListView(
       controller: controller,
       padding: padding,
-      physics: physics ??
+      physics:
+          physics ??
           (_isCupertino
               ? const BouncingScrollPhysics(
                   parent: AlwaysScrollableScrollPhysics(),

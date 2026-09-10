@@ -29,7 +29,7 @@ class AppTextField extends StatelessWidget {
   const AppTextField({
     super.key,
     required this.controller,
-    required this.label,
+    this.label,
     this.hint,
     this.obscureText = false,
     this.keyboardType,
@@ -43,7 +43,7 @@ class AppTextField extends StatelessWidget {
   });
 
   final TextEditingController controller;
-  final String label;
+  final String? label;
   final String? hint;
   final bool obscureText;
   final TextInputType? keyboardType;
@@ -67,6 +67,7 @@ class AppTextField extends StatelessWidget {
       maxLines: obscureText ? 1 : maxLines,
       onFieldSubmitted: onSubmitted,
       style: const TextStyle(
+        fontFamily: 'Poppins',
         color: AppColors.textPrimary,
         fontSize: 15,
         fontWeight: FontWeight.w500,
@@ -77,6 +78,8 @@ class AppTextField extends StatelessWidget {
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
         floatingLabelBehavior: FloatingLabelBehavior.auto,
+        labelStyle: const TextStyle(fontFamily: 'Poppins'),
+        hintStyle: const TextStyle(fontFamily: 'Poppins'),
       ),
     );
   }
@@ -109,13 +112,21 @@ class AppSearchField extends StatelessWidget {
     return TextField(
       controller: controller,
       onChanged: onChanged,
-      style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+      style: const TextStyle(
+        fontFamily: 'Poppins',
+        fontSize: 14,
+        color: AppColors.textPrimary,
+      ),
       decoration: InputDecoration(
         hintText: hint,
+        hintStyle: const TextStyle(fontFamily: 'Poppins'),
         prefixIcon: const Icon(Icons.search, color: AppColors.textTertiary),
         filled: true,
         fillColor: AppColors.surfaceAlt,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
         border: const OutlineInputBorder(
           borderRadius: AppRadii.pillAll,
           borderSide: BorderSide.none,

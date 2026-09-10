@@ -1,13 +1,14 @@
 import 'package:get/get.dart';
+import 'package:study_pair/pages/auth/register/step_two/register_step_two_page.dart';
 
 import '../pages/auth/login/login_page.dart';
 import '../pages/auth/register/register_page.dart';
 import '../pages/dashboard/chat/chat_page.dart';
 import '../pages/dashboard/dashboard_binding.dart';
 import '../pages/dashboard/dashboard_page.dart';
+import '../pages/dashboard/profile/profile_page.dart';
 import '../pages/pre_auth/splash/splash_page.dart';
 import 'app_routes.dart';
-import 'middlewares/auth_middleware.dart';
 import 'middlewares/guest_middleware.dart';
 
 class AppPages {
@@ -36,6 +37,15 @@ class AppPages {
       middlewares: [GuestMiddleware()],
       transition: Transition.rightToLeft,
     ),
+    // Register
+    GetPage(
+      name: Routes.registerStepTwo,
+      page: () => RegisterStepTwoPage(
+        isStudent: Get.arguments is Map
+            ? (Get.arguments as Map)['isStudent'] as bool? ?? false
+            : false,
+      ),
+    ),
 
     // Dashboard
     GetPage(
@@ -44,6 +54,12 @@ class AppPages {
       binding: DashboardBinding(),
       // middlewares: [AuthMiddleware()],
       transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: Routes.profile,
+      page: () => const ProfilePage(),
+      // middlewares: [AuthMiddleware()],
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: Routes.chat,

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:study_pair/pages/auth/register/widgets/profile_selector.dart';
+import 'package:study_pair/pages/auth/register/widgets/register_footer.dart';
+import 'package:study_pair/pages/auth/register/widgets/register_form.dart';
+import 'package:study_pair/pages/auth/register/widgets/register_header.dart';
 
-import '../../../routes/app_routes.dart';
-import '../../../services/auth_service.dart';
+import '../../../../routes/app_routes.dart';
+import '../../../../widgets/app_scaffold.dart';
+import '../../../../widgets/gap.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -12,67 +17,53 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final _name = TextEditingController();
-  final _email = TextEditingController();
-  final _password = TextEditingController();
-  final _auth = Get.find<AuthService>();
-  bool _loading = false;
+  // État pour la sélection du profil (true = Étudiant, false = Mentor)
+  bool _isStudentSelected = true;
 
-  Future<void> _submit() async {
-    setState(() => _loading = true);
-    try {
-      await _auth.signUp(_name.text, _email.text, _password.text);
-      Get.offAllNamed(Routes.dashboard);
-    } catch (e) {
-      Get.snackbar('Erreur', e.toString());
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _email.dispose();
-    _password.dispose();
-    super.dispose();
-  }
+  // État pour la case à cocher RGPD
+  bool _acceptTerms = false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Créer un compte')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          TextField(
-            controller: _name,
-            decoration: const InputDecoration(labelText: 'Nom'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _email,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(labelText: 'Email'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _password,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: 'Mot de passe'),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _loading ? null : _submit,
-            child: _loading
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('S\'inscrire'),
-          ),
-        ],
+    return AppScaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const RegisterHeader(),
+            const VGap.xl(),
+
+            // Section Choix du profil
+            ProfileSelector(
+              isStudentSelected: _isStudentSelected,
+              onProfileSelected: (bool isStudent) {
+                setState(() {
+                  _isStudentSelected = isStudent;
+                });
+              },
+            ),
+
+            const VGap.xl(),
+
+            // Formulaire d'inscription
+            RegisterForm(
+              acceptTerms: _acceptTerms,
+              onTermsChanged: (bool? value) {
+                setState(() {
+                  _acceptTerms = value ?? false;
+                });
+              },
+              onSubmit: () {
+                Get.toNamed(Routes.registerStepTwo, arguments: {'isStudent': _isStudentSelected});
+              },
+            ),
+
+            const VGap.xl(),
+            const RegisterFooter(),
+            const VGap.xxl(),
+          ],
+        ),
       ),
     );
   }
