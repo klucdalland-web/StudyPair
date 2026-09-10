@@ -14,10 +14,7 @@ import 'app_radii.dart';
 /// )
 /// ```
 ThemeData get appTheme {
-  final base = ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.light,
-  );
+  final base = ThemeData(useMaterial3: true, brightness: Brightness.light);
 
   final colorScheme = ColorScheme.fromSeed(
     seedColor: AppColors.primary,
@@ -140,7 +137,10 @@ ThemeData get appTheme {
       selectedItemColor: AppColors.primary,
       unselectedItemColor: AppColors.textTertiary,
       selectedLabelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-      unselectedLabelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+      unselectedLabelStyle: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+      ),
       showUnselectedLabels: true,
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(

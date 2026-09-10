@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+
 import 'package:get/get.dart';
+
+import 'package:study_pair/pages/auth/login/widgets/login_card.dart';
+import 'package:study_pair/pages/auth/login/widgets/login_footer.dart';
+import 'package:study_pair/pages/auth/login/widgets/login_header_widget.dart';
+import 'package:study_pair/pages/auth/login/widgets/trust_button.dart';
 
 import '../../../routes/app_routes.dart';
 import '../../../services/auth_service.dart';
-import '../../../theme/app_colors.dart';
-import '../../../widgets/app_button.dart';
 import '../../../widgets/app_scaffold.dart';
-import '../../../widgets/app_text_field.dart';
 import '../../../widgets/gap.dart';
 
 class LoginPage extends StatefulWidget {
@@ -20,17 +23,22 @@ class _LoginPageState extends State<LoginPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _auth = Get.find<AuthService>();
+
   bool _loading = false;
+  bool _obscurePassword = true;
 
   Future<void> _run(Future<void> Function() action) async {
     setState(() => _loading = true);
+
     try {
       await action();
       Get.offAllNamed(Routes.dashboard);
     } catch (e) {
       Get.snackbar('Erreur', e.toString());
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -47,63 +55,32 @@ class _LoginPageState extends State<LoginPage> {
       body: AppPageScroll(
         children: [
           const VGap.xxl(),
-          Text(
-            'StudyPair',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
-          ),
-          const VGap.sm(),
-          const Text(
-            'Connecte-toi pour trouver un binôme',
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
+
+          const LoginHeader(),
+
           const VGap.xxl(),
-          AppTextField(
-            controller: _email,
-            label: 'Email',
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-          ),
-          const VGap.md(),
-          AppTextField(
-            controller: _password,
-            label: 'Mot de passe',
-            obscureText: true,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _run(
-              () => _auth.signIn(_email.text, _password.text),
-            ),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: AppButton.ghost(
-              label: 'Mot de passe oublié ?',
-              onPressed: ()=>
-              Get.toNamed(Routes.dashboard)
-              // _loading
-              //     ? null
-              //     : () => _run(() => _auth.resetPassword(_email.text)),
-            ),
-          ),
-          AppButton(
-            label: 'Se connecter',
+
+          LoginCard(
+            emailController: _email,
+            passwordController: _password,
+            obscurePassword: _obscurePassword,
             loading: _loading,
-            onPressed: () => _run(
-              () => _auth.signIn(_email.text, _password.text),
-            ),
+            onToggleObscure: () =>
+                setState(() => _obscurePassword = !_obscurePassword),
+            onGoogleSignIn: () => _run(_auth.signInWithGoogle),
+            onForgotPassword: () =>
+                _run(() => _auth.resetPassword(_email.text)),
+            onSubmit: () =>
+                _run(() => _auth.signIn(_email.text, _password.text)),
           ),
-          const VGap.md(),
-          AppButton.secondary(
-            label: 'Continuer avec Google',
-            loading: _loading,
-            onPressed: () => _run(_auth.signInWithGoogle),
-          ),
-          AppButton.ghost(
-            label: 'Créer un compte',
-            onPressed: () => Get.toNamed(Routes.register),
-          ),
+
+          const VGap.xl(),
+
+          const TrustBadge(),
+
+          const VGap.xl(),
+
+          LoginFooter(onRegister: () => Get.toNamed(Routes.register)),
         ],
       ),
     );
