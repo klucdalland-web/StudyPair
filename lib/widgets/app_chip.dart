@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:study_pair/widgets/app_text.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_radii.dart';
@@ -69,18 +70,8 @@ class AppChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (leading != null) ...[
-            leading!,
-            const SizedBox(width: 6),
-          ],
-          Text(
-            label,
-            style: TextStyle(
-              color: fg,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          if (leading != null) ...[leading!, const SizedBox(width: 6)],
+          AppText(label, color: fg, fontSize: 12, fontWeight: FontWeight.w600),
         ],
       ),
     );
