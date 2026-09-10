@@ -20,7 +20,7 @@ class HomePage extends StatelessWidget {
         children: [
           const Header(),
           const VGap.md(),
-          const Search(),
+          // const Search(),
           const VGap.xl(),
           Expanded(
             child: DecoratedBox(

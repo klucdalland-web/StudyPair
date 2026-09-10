@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../routes/app_routes.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../theme/app_colors.dart';
+import '../../../../widgets/app_avatar.dart';
 
 class Header extends StatelessWidget {
   const Header({super.key});
@@ -46,13 +48,15 @@ class Header extends StatelessWidget {
             }),
           ),
           const SizedBox(width: 12),
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: AppColors.surface.withValues(alpha: 0.2),
-            backgroundImage: const AssetImage(
-              'assets/images/screen-removebg-preview.png',
-            ),
-          ),
+          Obx(() {
+            final user = auth.user.value;
+            return AppAvatar(
+              imageUrl: user?.photoUrl,
+              name: user?.displayName,
+              size: 44,
+              onTap: () => Get.toNamed(Routes.profile),
+            );
+          }),
         ],
       ),
     );
