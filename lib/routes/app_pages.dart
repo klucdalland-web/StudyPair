@@ -6,6 +6,7 @@ import '../pages/auth/register/register_page.dart';
 import '../pages/dashboard/chat/chat_page.dart';
 import '../pages/dashboard/dashboard_binding.dart';
 import '../pages/dashboard/dashboard_page.dart';
+import '../pages/dashboard/profile/profile_page.dart';
 import '../pages/pre_auth/splash/splash_page.dart';
 import 'app_routes.dart';
 import 'middlewares/guest_middleware.dart';
@@ -53,6 +54,12 @@ class AppPages {
       binding: DashboardBinding(),
       // middlewares: [AuthMiddleware()],
       transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: Routes.profile,
+      page: () => const ProfilePage(),
+      // middlewares: [AuthMiddleware()],
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: Routes.chat,

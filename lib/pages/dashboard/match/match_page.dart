@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:study_pair/pages/dashboard/home/widgets/categorieSection.dart';
+import 'package:study_pair/pages/dashboard/home/widgets/demandesrecentes.dart';
+import 'package:study_pair/pages/dashboard/home/widgets/header.dart';
+import 'package:study_pair/pages/dashboard/home/widgets/search.dart';
+import 'package:study_pair/pages/dashboard/match/widgets/correspondance.dart';
+import 'package:study_pair/pages/dashboard/match/widgets/mesmachts.dart';
+import 'package:study_pair/theme/app_colors.dart';
+import 'package:study_pair/widgets/app_platform.dart';
+import 'package:study_pair/widgets/gap.dart';
 
 import '../../../models/user_model.dart';
 import '../../../services/match_service.dart';
@@ -66,65 +75,43 @@ class _MatchPageState extends State<MatchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Trouver un binôme')),
+    return AppTabScaffold(
+      backgroundColor: AppColors.primary,
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _subject,
-                  decoration: const InputDecoration(labelText: 'Matière'),
-                ),
-                const SizedBox(height: 8),
-                Row(
+          const Header(),
+          const VGap.md(),
+          const Search(),
+          const VGap.xl(),
+          Expanded(
+            child: DecoratedBox(
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                physics: AppPlatform.scrollPhysics,
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _university,
-                        decoration: const InputDecoration(
-                          labelText: 'Université',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: _level,
-                        decoration: const InputDecoration(labelText: 'Niveau'),
-                      ),
-                    ),
+                    MesMatchsComplet(),
+                    MeilleuresCorrespondancesSection()
                   ],
                 ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: _loading ? null : _search,
-                  child: const Text('Rechercher'),
-                ),
-              ],
+              ),
             ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _partners.isEmpty
-                ? const Center(child: Text('Aucun partenaire trouvé'))
-                : ListView.builder(
-                    itemCount: _partners.length,
-                    itemBuilder: (_, i) {
-                      final p = _partners[i];
-                      return PartnerTile(
-                        partner: p,
-                        onRequest: () => _request(p),
-                      );
-                    },
-                  ),
           ),
         ],
       ),
     );
+    
+    
+    
+    
+    // Scaffold(
+    //   appBar: AppBar(title: const Text('Trouver un binôme')),
+    //   body: MesMatchsComplet(),
+    // );
   }
 }
