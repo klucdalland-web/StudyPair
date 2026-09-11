@@ -18,15 +18,16 @@ class RegisterStepTwoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(RegisterStepTwoController());
+    final controller = Get.find<RegisterStepTwoController>();
 
     return AppScaffold(
       body: Column(
         children: [
-          // En-tête personnalisé
           RegisterStepHeader(
-            title: isStudent ? 'Inscription Étudiant' : 'Inscription Mentor',
-            subtitle: isStudent ? 'Besoins d\'accompagnement' : 'Finalisation',
+            title: isStudent
+                ? 'Informations personnelles'
+                : 'Informations Mentor',
+            subtitle: isStudent ? 'Complétez votre profil' : 'Finalisation',
             stepText: 'Étape 2 sur 2',
           ),
 
@@ -42,19 +43,23 @@ class RegisterStepTwoPage extends StatelessWidget {
             ),
           ),
 
-          // Bouton de soumission en bas
           Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
               children: [
-                AppButton(
-                  label: isStudent
-                      ? 'Finaliser mon inscription'
-                      : 'Valider et devenir Mentor',
-                  onPressed: () => controller.submitForm(isStudent: isStudent),
-                  icon: isStudent
-                      ? Icons.arrow_forward
-                      : Icons.check_circle_outline,
+                Obx(
+                  () => AppButton(
+                    label: isStudent
+                        ? 'Enregistrer mes informations'
+                        : 'Valider mon profil Mentor',
+                    loading: controller.isLoading.value,
+                    onPressed: controller.isLoading.value
+                        ? null
+                        : () => controller.submitForm(isStudent: isStudent),
+                    icon: isStudent
+                        ? Icons.arrow_forward
+                        : Icons.check_circle_outline,
+                  ),
                 ),
                 const VGap.sm(),
                 Row(

@@ -48,8 +48,8 @@ abstract class Validators {
     return null;
   }
 
-  static String? name(String? value) {
-    final requiredError = required(value, 'Le prénom et le nom');
+  static String? name(String? value, [String label = 'Ce champ']) {
+    final requiredError = required(value, label);
     if (requiredError != null) return requiredError;
     if (value!.trim().length < 2) {
       return 'Au moins 2 caractères';

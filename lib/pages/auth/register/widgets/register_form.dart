@@ -7,14 +7,21 @@ import 'package:study_pair/widgets/gap.dart';
 
 class RegisterForm extends StatefulWidget {
   final bool acceptTerms;
+  final bool loading;
   final ValueChanged<bool?> onTermsChanged;
-  final VoidCallback onSubmit;
+  final void Function({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+  }) onSubmit;
 
   const RegisterForm({
     super.key,
     required this.acceptTerms,
     required this.onTermsChanged,
     required this.onSubmit,
+    this.loading = false,
   });
 
   @override
@@ -23,7 +30,8 @@ class RegisterForm extends StatefulWidget {
 
 class _RegisterFormState extends State<RegisterForm> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _nameController;
+  late final TextEditingController _firstNameController;
+  late final TextEditingController _lastNameController;
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
   bool _obscurePassword = true;
@@ -31,23 +39,31 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
+    _firstNameController = TextEditingController();
+    _lastNameController = TextEditingController();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   void _handleSubmit() {
+    if (widget.loading) return;
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid || !widget.acceptTerms) return;
-    widget.onSubmit();
+    widget.onSubmit(
+      firstName: _firstNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
   }
 
   @override
@@ -111,19 +127,52 @@ class _RegisterFormState extends State<RegisterForm> {
           ),
           const VGap.lg(),
 
-          // Champ Prénom & Nom
-          const _FieldLabelRow(label: 'Prénom & Nom', trailing: 'Obligatoire'),
-          const VGap.sm(),
-          AppTextField(
-            controller: _nameController,
-            hint: 'Ex. Camille Bernard',
-            textInputAction: TextInputAction.next,
-            validator: Validators.name,
-            prefixIcon: Icon(
-              Icons.person_outline,
-              color: AppColors.textSecondary,
-              size: 20,
-            ),
+          // Champs Prénom & Nom
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const _FieldLabelRow(label: 'Prénom', trailing: 'Obligatoire'),
+                    const VGap.sm(),
+                    AppTextField(
+                      controller: _firstNameController,
+                      hint: 'Camille',
+                      textInputAction: TextInputAction.next,
+                      validator: (value) => Validators.name(value, 'Le prénom'),
+                      prefixIcon: Icon(
+                        Icons.person_outline,
+                        color: AppColors.textSecondary,
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const HGap.md(),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const _FieldLabelRow(label: 'Nom', trailing: 'Obligatoire'),
+                    const VGap.sm(),
+                    AppTextField(
+                      controller: _lastNameController,
+                      hint: 'Bernard',
+                      textInputAction: TextInputAction.next,
+                      validator: (value) => Validators.name(value, 'Le nom'),
+                      prefixIcon: Icon(
+                        Icons.badge_outlined,
+                        color: AppColors.textSecondary,
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const VGap.lg(),
 
@@ -227,7 +276,9 @@ class _RegisterFormState extends State<RegisterForm> {
 
           // Bouton de validation
           ElevatedButton(
-            onPressed: widget.acceptTerms ? _handleSubmit : null,
+            onPressed: widget.acceptTerms && !widget.loading
+                ? _handleSubmit
+                : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
@@ -237,19 +288,28 @@ class _RegisterFormState extends State<RegisterForm> {
               ),
               elevation: 0,
             ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AppText(
-                  'Créer mon compte et continuer',
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-                HGap.sm(),
-                Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-              ],
-            ),
+            child: widget.loading
+                ? const SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AppText(
+                        'Créer mon compte',
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                      HGap.sm(),
+                      Icon(Icons.check, color: Colors.white, size: 18),
+                    ],
+                  ),
           ),
         ],
       ),

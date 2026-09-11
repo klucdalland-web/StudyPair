@@ -80,7 +80,7 @@ class RegisterHeader extends StatelessWidget {
             ),
             const HGap.sm(),
             const AppText(
-              'Votre Rôle',
+              'Compte',
               fontWeight: FontWeight.w600,
               color: AppColors.primary,
             ),
@@ -110,7 +110,7 @@ class RegisterHeader extends StatelessWidget {
               ),
             ),
             const HGap.sm(),
-            const AppText('Identifiants', color: AppColors.textSecondary),
+            const AppText('Infos personnelles', color: AppColors.textSecondary),
           ],
         ),
       ],

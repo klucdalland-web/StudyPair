@@ -85,19 +85,25 @@ class AuthService extends GetxService {
           return 'Une erreur est survenue. Réessaie.';
       }
     }
-  Future<void> signUp(String name, String email, String password) async {
+  Future<void> signUp({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+  }) async {
     print('📝 Register… ($email)');
     try {
+      final displayName = '${firstName.trim()} ${lastName.trim()}'.trim();
       final cred = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
-      await cred.user!.updateDisplayName(name.trim());
+      await cred.user!.updateDisplayName(displayName);
       final profile = UserModel(
         id: cred.user!.uid,
         email: email.trim(),
-        displayName: name.trim(),
-        isOnline:true
+        displayName: displayName,
+        isOnline: true,
       );
       await _db.collection('users').doc(profile.id).set(profile.toMap(isNew: true));
       print('✅ Register OK + 📄 Firestore users/${profile.id}');
