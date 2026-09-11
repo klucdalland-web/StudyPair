@@ -1,0 +1,38 @@
+[
+  {
+    "id": "1",
+    "chatId": "chat1",
+    "senderId": "user1",
+    "content": "Bonjour, vas-tu bien ?"
+  },
+  {
+    "id": "2",
+    "chatId": "chat1",
+    "senderId": "user2",
+    "content": "Ça va bien et chez toi ?"
+  },
+  {
+    "id": "3",
+    "chatId": "chat1",
+    "senderId": "user1",
+    "content": "Ça va aussi, j'ai besoin d'aide pour mon projet."
+  },
+  {
+    "id": "4",
+    "chatId": "chat1",
+    "senderId": "user2",
+    "content": "Tu peux m'en dire plus sur ton projet ?"
+  },
+  {
+    "id": "5",
+    "chatId": "chat1",
+    "senderId": "user1",
+    "content": "Oui, c'est un projet de web development."
+  },
+  {
+    "id": "6",
+    "chatId": "chat1",
+    "senderId": "user2",
+    "content": "Ok, je pense que je peux t'aider pour ton projet Web."
+  }
+]

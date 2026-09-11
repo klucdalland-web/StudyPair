@@ -5,10 +5,14 @@ import '../../../models/chat_model.dart';
 import '../../../models/message_model.dart';
 import '../../../routes/app_routes.dart';
 import '../../../services/auth_service.dart';
-import '../../../services/chat_service.dart';
+
 import 'widgets/chat_input_bar.dart';
 import 'widgets/message_bubble.dart';
+import '../chats/services/mock_chat_service.dart';
+import '../../../widgets/app_avatar.dart';
+import '../../../widgets/messages_limit.dart';
 
+import '../../../widgets/app_validate_chat.dart';
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
 
@@ -17,7 +21,8 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final _chats = Get.find<ChatService>();
+ // final _chats = Get.find<ChatService>();
+ final _chats = Get.find<MockChatService>();
   final _auth = Get.find<AuthService>();
   final _input = TextEditingController();
 
@@ -33,7 +38,7 @@ class _ChatPageState extends State<ChatPage> {
     if (args is ChatModel) {
       _chat = args;
     } else if (chatId != null && chatId.isNotEmpty) {
-      _chat = ChatModel(id: chatId, participantIds: const []);
+      _chat = ChatModel(id: chatId, participantIds: const [], isValidated: false);
     } else {
       _error = 'Conversation introuvable';
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -48,7 +53,7 @@ class _ChatPageState extends State<ChatPage> {
     final text = _input.text.trim();
     if (text.isEmpty) return;
     try {
-      await _chats.sendMessage(chat.id, text);
+      await _chats.sendMessage(chat.id, text, DateTime.now());
       _input.clear();
     } catch (e) {
       Get.snackbar('Erreur', e.toString());
@@ -66,37 +71,84 @@ class _ChatPageState extends State<ChatPage> {
     final chat = _chat;
     if (chat == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Discussion')),
+        appBar: AppBar(),
         body: Center(child: Text(_error ?? 'Chargement...')),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Discussion')),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<List<MessageModel>>(
-              stream: _chats.watchMessages(chat.id),
-              builder: (context, snapshot) {
-                final messages = snapshot.data ?? [];
-                return ListView.builder(
+  appBar: AppBar(
+  leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () => Get.back(),
+  ),
+
+  title: Row(
+    children: [
+      AppAvatar(
+        imageUrl: _auth.user.value?.photoUrl,
+        name: _auth.user.value?.displayName,
+        online: _auth.user.value?.isOnline,
+        onTap: () {},
+      ),
+      const SizedBox(width: 8),
+      const Text('Chat'),
+    ],
+  ),
+
+  actions: [
+    if (!chat.isValidated)
+      AppValidateChat(
+        onValidate: () async {
+          await _chats.validateChat(chat.id);
+          setState(() {});
+        },
+      ),
+  ],
+),
+    
+     body: Column(
+  children: [
+    Expanded(
+      child: StreamBuilder<List<MessageModel>>(
+        stream: _chats.watchMessages(chat.id),
+        builder: (context, snapshot) {
+          final messages = snapshot.data ?? [];
+          return Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: messages.length,
                   itemBuilder: (_, i) {
                     final m = messages[i];
                     return MessageBubble(
                       content: m.content,
-                      mine: m.senderId == _auth.uid,
+                      mine: m.senderId == 'user1',
+                      sendAt: m.sendAt,
                     );
                   },
-                );
-              },
-            ),
-          ),
-          ChatInputBar(controller: _input, onSend: _send),
-        ],
+                ),
+              ),
+              if (!chat.isValidated)
+                MessageLimit(
+                  messageCount: messages.length,
+                ),
+                ChatInputBar(
+      controller: _input,
+      onSend: _send,
+      isEnabled: chat.isValidated || messages.length < 6,
+    ),
+            ],
+          );
+        },
       ),
+    ),
+
+    
+  ],
+),
+  
     );
   }
 }

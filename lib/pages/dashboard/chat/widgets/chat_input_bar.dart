@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 /// Barre de saisie en bas de la conversation.
@@ -6,10 +7,12 @@ class ChatInputBar extends StatelessWidget {
     super.key,
     required this.controller,
     required this.onSend,
+    required this.isEnabled,
   });
 
   final TextEditingController controller;
   final VoidCallback onSend;
+  final bool isEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -21,12 +24,19 @@ class ChatInputBar extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
-                decoration: const InputDecoration(hintText: 'Message...'),
-                onSubmitted: (_) => onSend(),
+                enabled: isEnabled,
+                decoration: const InputDecoration(
+                  hintText: 'Message...',
+                ),
+                onSubmitted: (_) {
+                  if (isEnabled) {
+                    onSend();
+                  }
+                },
               ),
             ),
             IconButton(
-              onPressed: onSend,
+              onPressed: isEnabled ? onSend : null,
               icon: const Icon(Icons.send),
             ),
           ],
@@ -35,3 +45,4 @@ class ChatInputBar extends StatelessWidget {
     );
   }
 }
+

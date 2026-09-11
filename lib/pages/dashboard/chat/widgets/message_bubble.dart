@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-
-/// Bulle de message (envoyée ou reçue).
+import '../utils/date_formater.dart';
 class MessageBubble extends StatelessWidget {
   const MessageBubble({
     super.key,
     required this.content,
     required this.mine,
+    required this.sendAt,
   });
 
   final String content;
   final bool mine;
+  final DateTime sendAt;
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +25,16 @@ class MessageBubble extends StatelessWidget {
               : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text(
-          content,
-          style: TextStyle(color: mine ? Colors.white : Colors.black),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(content),
+            const SizedBox(height: 4),
+            Text(
+              formatMessageDate(sendAt),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
         ),
       ),
     );

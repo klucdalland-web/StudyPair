@@ -10,6 +10,7 @@ class UserModel {
     this.university,
     this.level,
     this.subjects = const [],
+    this.isOnline = false,
   });
 
   final String id;
@@ -19,6 +20,7 @@ class UserModel {
   final String? bio;
   final String? university;
   final String? level;
+  final bool isOnline;
   final List<String> subjects;
 
   factory UserModel.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -32,6 +34,7 @@ class UserModel {
       university: data['university'] as String?,
       level: data['level'] as String?,
       subjects: List<String>.from(data['subjects'] as List? ?? const []),
+      isOnline: data['isOnline'] as bool? ?? false,
     );
   }
 
@@ -54,6 +57,7 @@ class UserModel {
     String? university,
     String? level,
     List<String>? subjects,
+    bool? isOnline,
   }) {
     return UserModel(
       id: id,
