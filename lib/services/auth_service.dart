@@ -58,6 +58,7 @@ class AuthService extends GetxService {
         id: cred.user!.uid,
         email: email.trim(),
         displayName: name.trim(),
+        isOnline:true
       );
       await _db.collection('users').doc(profile.id).set(profile.toMap(isNew: true));
       print('✅ Register OK + 📄 Firestore users/${profile.id}');
@@ -119,7 +120,7 @@ class AuthService extends GetxService {
       );
       await ref.set(profile.toMap(isNew: true));
       print('🆕 Firestore: profil créé users/${firebaseUser.uid}');
-      return profile;
+      return profile.copyWith(isOnline: true);
     } catch (e) {
       print('❌ Firestore FAIL (profil) → $e');
       rethrow;

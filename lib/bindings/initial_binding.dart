@@ -1,9 +1,10 @@
 import 'package:get/get.dart';
 
 import '../services/auth_service.dart';
-import '../services/chat_service.dart';
+import '../pages/dashboard/chats/services/chat_service.dart';
 import '../services/match_service.dart';
 import '../services/user_service.dart';
+import '../pages/dashboard/chats/services/mock_chat_service.dart';
 
 /// Injection globale des services GetX.
 class InitialBinding extends Bindings {
@@ -12,6 +13,7 @@ class InitialBinding extends Bindings {
     _putIfAbsent(() => UserService());
     _putIfAbsent(() => MatchService());
     _putIfAbsent(() => ChatService());
+    Get.put(MockChatService());
   }
 
   /// À appeler dans `main` avant `runApp`.

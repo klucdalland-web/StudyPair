@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
-import '../models/chat_model.dart';
-import '../models/message_model.dart';
+import '../../../../models/chat_model.dart';
+import '../../../../models/message_model.dart';
 
 class ChatService extends GetxService {
   final _db = FirebaseFirestore.instance;
@@ -37,7 +37,7 @@ class ChatService extends GetxService {
         );
   }
 
-  Future<void> sendMessage(String chatId, String content) async {
+  Future<void> sendMessage(String chatId, String content, DateTime sendAt) async {
     final ref = _db
         .collection('chats')
         .doc(chatId)
@@ -47,7 +47,9 @@ class ChatService extends GetxService {
       id: ref.id,
       chatId: chatId,
       senderId: _uid,
-      content: content.trim(),
+      content: content,
+      sendAt:sendAt,
+      isRead: false,
     );
     final batch = _db.batch();
     batch.set(ref, message.toMap());
@@ -57,4 +59,5 @@ class ChatService extends GetxService {
     });
     await batch.commit();
   }
+
 }
