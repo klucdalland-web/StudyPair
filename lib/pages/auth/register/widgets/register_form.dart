@@ -9,6 +9,7 @@ class RegisterForm extends StatefulWidget {
   final bool acceptTerms;
   final bool loading;
   final ValueChanged<bool?> onTermsChanged;
+  final VoidCallback? onGoogleSignUp;
   final void Function({
     required String firstName,
     required String lastName,
@@ -21,6 +22,7 @@ class RegisterForm extends StatefulWidget {
     required this.acceptTerms,
     required this.onTermsChanged,
     required this.onSubmit,
+    this.onGoogleSignUp,
     this.loading = false,
   });
 
@@ -75,7 +77,21 @@ class _RegisterFormState extends State<RegisterForm> {
         children: [
           // Bouton Google
           OutlinedButton(
-            onPressed: () {},
+            onPressed: widget.loading
+                ? null
+                : () {
+                    if (!widget.acceptTerms) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Accepte la charte pour t\'inscrire avec Google.',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+                    widget.onGoogleSignUp?.call();
+                  },
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               backgroundColor: Colors.white,

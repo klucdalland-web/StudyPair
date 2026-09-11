@@ -24,27 +24,39 @@ class _RegisterPageState extends State<RegisterPage> {
 
   final _auth = Get.find<AuthService>();
 
-  Future<void> _createAccount({
-    required String firstName,
-    required String lastName,
-    required String email,
-    required String password,
-  }) async {
+  Future<void> _run(Future<void> Function() action) async {
     setState(() => _loading = true);
     try {
-      await _auth.signUp(
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        password: password,
-        isStudent: _isStudentSelected,
-      );
+      await action();
       Get.offAllNamed(Routes.dashboard);
     } catch (e) {
       Get.snackbar('Erreur', e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _createAccount({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+  }) {
+    return _run(
+      () => _auth.signUp(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+        isStudent: _isStudentSelected,
+      ),
+    );
+  }
+
+  Future<void> _createAccountWithGoogle() {
+    return _run(
+      () => _auth.signUpWithGoogle(isStudent: _isStudentSelected),
+    );
   }
 
   @override
@@ -74,6 +86,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 setState(() => _acceptTerms = value ?? false);
               },
               onSubmit: _createAccount,
+              onGoogleSignUp: _createAccountWithGoogle,
             ),
 
             const VGap.xl(),

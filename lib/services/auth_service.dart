@@ -9,7 +9,12 @@ import '../models/user_model.dart';
 class AuthService extends GetxService {
   final _auth = FirebaseAuth.instance;
   final _db = FirebaseFirestore.instance;
-  final _google = GoogleSignIn();
+  // serverClientId = client Web (type 3) — nécessaire pour obtenir l'idToken (surtout Android).
+  final _google = GoogleSignIn(
+    scopes: const ['email', 'profile'],
+    serverClientId:
+        '639858293131-3slpv6e2llg73bhe37ffpgjjhb1l0kqv.apps.googleusercontent.com',
+  );
 
   AuthService to() => Get.find<AuthService>();
   final user = Rxn<UserModel>();
@@ -32,14 +37,16 @@ class AuthService extends GetxService {
       if (kDebugMode) {
         print('✅ Auth: session active → ${firebaseUser.email} (${firebaseUser.uid})');
       }
-      user.value = await _getOrCreateProfile(firebaseUser);
+      // Ne crée jamais de profil ici — login ≠ register.
+      // Si le doc n’existe pas encore (ex. mid signUp Google), on ne touche pas.
+      final profile = await _getProfile(firebaseUser);
+      if (profile != null) user.value = profile;
     });
     if (kDebugMode) {
       print('👀 Écoute authStateChanges activée');
     }
     return this;
   }
-  
 
   Future<void> signIn(String email, String password) async {
     if (kDebugMode) {
@@ -53,38 +60,46 @@ class AuthService extends GetxService {
       if (kDebugMode) {
         print('✅ Login OK → ${cred.user?.uid}');
       }
-      user.value = await _getOrCreateProfile(cred.user!);
+      final profile = await _getProfile(cred.user!);
+      if (profile == null) {
+        await _auth.signOut();
+        throw 'Aucun compte associé. Inscris-toi d\'abord.';
+      }
+      user.value = profile;
     } on FirebaseAuthException catch (e) {
       if (kDebugMode) {
         print('❌ Login FAIL → ${e.code}');
       }
       throw _mapAuthError(e);
     } catch (e) {
+      if (e is String) rethrow;
       throw 'Une erreur est survenue. Réessaie.';
     }
   }
+
   String _mapAuthError(FirebaseAuthException e) {
-      switch (e.code) {
-        case 'invalid-credential':
-        case 'wrong-password':
-        case 'user-not-found':
-          return 'Email ou mot de passe incorrect.';
-        case 'invalid-email':
-          return 'Adresse email invalide.';
-        case 'user-disabled':
-          return 'Ce compte a été désactivé.';
-        case 'too-many-requests':
-          return 'Trop de tentatives. Réessaie plus tard.';
-        case 'email-already-in-use':
-          return 'Cet email est déjà utilisé.';
-        case 'weak-password':
-          return 'Le mot de passe est trop faible.';
-        case 'network-request-failed':
-          return 'Problème de connexion réseau.';
-        default:
-          return 'Une erreur est survenue. Réessaie.';
-      }
+    switch (e.code) {
+      case 'invalid-credential':
+      case 'wrong-password':
+      case 'user-not-found':
+        return 'Email ou mot de passe incorrect.';
+      case 'invalid-email':
+        return 'Adresse email invalide.';
+      case 'user-disabled':
+        return 'Ce compte a été désactivé.';
+      case 'too-many-requests':
+        return 'Trop de tentatives. Réessaie plus tard.';
+      case 'email-already-in-use':
+        return 'Cet email est déjà utilisé.';
+      case 'weak-password':
+        return 'Le mot de passe est trop faible.';
+      case 'network-request-failed':
+        return 'Problème de connexion réseau.';
+      default:
+        return 'Une erreur est survenue. Réessaie.';
     }
+  }
+
   Future<void> signUp({
     required String firstName,
     required String lastName,
@@ -116,27 +131,70 @@ class AuthService extends GetxService {
     }
   }
 
+  /// Login Google : ne crée pas de compte. Le profil Firestore doit déjà exister.
   Future<void> signInWithGoogle() async {
-    print('🟣 Google Sign-In…');
+    print('🟣 Google Sign-In (login)…');
     try {
-      final googleUser = await _google.signIn();
-      if (googleUser == null) {
-        print('⚠️ Google annulé par l’utilisateur');
-        throw Exception('Connexion Google annulée');
+      final firebaseUser = await _authenticateWithGoogle();
+      final profile = await _getProfile(firebaseUser);
+      if (profile == null) {
+        await Future.wait([_auth.signOut(), _google.signOut()]);
+        throw 'Aucun compte associé. Inscris-toi d\'abord.';
       }
-      final googleAuth = await googleUser.authentication;
-      final cred = await _auth.signInWithCredential(
-        GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        ),
-      );
-      print('✅ Google OK → ${cred.user?.email}');
-      user.value = await _getOrCreateProfile(cred.user!);
+      print('✅ Google login OK → ${firebaseUser.email}');
+      user.value = profile;
     } catch (e) {
-      print('❌ Google FAIL → $e');
+      print('❌ Google login FAIL → $e');
       rethrow;
     }
+  }
+
+  /// Register Google : crée le profil Firestore avec le choix Étudiant / non.
+  Future<void> signUpWithGoogle({required bool isStudent}) async {
+    print('🟣 Google Sign-Up (register)… isStudent=$isStudent');
+    try {
+      final firebaseUser = await _authenticateWithGoogle();
+      final existing = await _getProfile(firebaseUser);
+      if (existing != null) {
+        print('📄 Compte Google déjà inscrit → login');
+        user.value = existing;
+        return;
+      }
+      final profile = UserModel(
+        id: firebaseUser.uid,
+        email: firebaseUser.email ?? '',
+        displayName: firebaseUser.displayName ?? '',
+        photoUrl: firebaseUser.photoURL,
+        isOnline: true,
+        isStudent: isStudent,
+      );
+      await _db.collection('users').doc(profile.id).set(profile.toMap(isNew: true));
+      print('✅ Google register OK + 📄 Firestore users/${profile.id}');
+      user.value = profile;
+    } catch (e) {
+      print('❌ Google register FAIL → $e');
+      rethrow;
+    }
+  }
+
+  Future<User> _authenticateWithGoogle() async {
+    final googleUser = await _google.signIn();
+    if (googleUser == null) {
+      print('⚠️ Google annulé par l’utilisateur');
+      throw 'Connexion Google annulée';
+    }
+    final googleAuth = await googleUser.authentication;
+    if (googleAuth.idToken == null) {
+      print('❌ Google: idToken null');
+      throw 'Impossible d\'obtenir le token Google. Vérifie la config OAuth.';
+    }
+    final cred = await _auth.signInWithCredential(
+      GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      ),
+    );
+    return cred.user!;
   }
 
   Future<void> resetPassword(String email) {
@@ -151,23 +209,17 @@ class AuthService extends GetxService {
     print('👋 Sign out OK');
   }
 
-  Future<UserModel> _getOrCreateProfile(User firebaseUser) async {
+  /// Charge le profil s’il existe — ne crée jamais de compte.
+  Future<UserModel?> _getProfile(User firebaseUser) async {
     final ref = _db.collection('users').doc(firebaseUser.uid);
     try {
       final doc = await ref.get();
-      if (doc.exists) {
-        print('📄 Firestore: profil trouvé users/${firebaseUser.uid}');
-        return UserModel.fromDoc(doc);
+      if (!doc.exists) {
+        print('📄 Firestore: pas de profil users/${firebaseUser.uid}');
+        return null;
       }
-      final profile = UserModel(
-        id: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-        displayName: firebaseUser.displayName ?? '',
-        photoUrl: firebaseUser.photoURL,
-      );
-      await ref.set(profile.toMap(isNew: true));
-      print('🆕 Firestore: profil créé users/${firebaseUser.uid}');
-      return profile.copyWith(isOnline: true);
+      print('📄 Firestore: profil trouvé users/${firebaseUser.uid}');
+      return UserModel.fromDoc(doc);
     } catch (e) {
       print('❌ Firestore FAIL (profil) → $e');
       rethrow;
