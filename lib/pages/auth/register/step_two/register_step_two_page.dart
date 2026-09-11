@@ -51,7 +51,7 @@ class RegisterStepTwoPage extends StatelessWidget {
                   label: isStudent
                       ? 'Finaliser mon inscription'
                       : 'Valider et devenir Mentor',
-                  onPressed: controller.submitForm,
+                  onPressed: () => controller.submitForm(isStudent: isStudent),
                   icon: isStudent
                       ? Icons.arrow_forward
                       : Icons.check_circle_outline,

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:study_pair/services/auth_service.dart';
 
-class RegisterStepTwoController extends GetxController {
+class RegisterStepTwoController extends AuthService {
+  final formKey = GlobalKey<FormState>();
+
   final establishmentController = TextEditingController();
   final specialtyController = TextEditingController();
   final subjectController = TextEditingController();
@@ -17,10 +20,6 @@ class RegisterStepTwoController extends GetxController {
     'Python',
     'Maths discrètes',
     'Prépa examens',
-  ].obs;
-  final RxList<String> selectedObjectives = <String>[
-    'Comprendre les cours & TD',
-    'Préparation aux partiels',
   ].obs;
   final RxString studentFrequency = '2h / semaine'.obs;
   final RxString studentMoment = 'Soir en semaine'.obs;
@@ -44,14 +43,6 @@ class RegisterStepTwoController extends GetxController {
     }
   }
 
-  void toggleObjective(String objective) {
-    if (selectedObjectives.contains(objective)) {
-      selectedObjectives.remove(objective);
-    } else {
-      selectedObjectives.add(objective);
-    }
-  }
-
   void updateMentorCapacity(String capacity) => mentorCapacity.value = capacity;
   void updateMentorFormat(String format) => mentorFormat.value = format;
 
@@ -63,14 +54,48 @@ class RegisterStepTwoController extends GetxController {
     }
   }
 
-  void submitForm() {
+  bool validateStudentExtras() {
+    if (selectedSubjects.isEmpty) {
+      Get.snackbar('Champ requis', 'Ajoutez au moins une matière.');
+      return false;
+    }
+    return true;
+  }
+
+  bool validateMentorExtras() {
+    if (mentorLevel.value == 'Sélectionnez votre niveau') {
+      Get.snackbar('Champ requis', 'Sélectionnez votre niveau d\'études.');
+      return false;
+    }
+    if (selectedExpertises.isEmpty) {
+      Get.snackbar('Champ requis', 'Ajoutez au moins un domaine d\'expertise.');
+      return false;
+    }
+    return true;
+  }
+
+  void submitForm({required bool isStudent}) {
+    
+    final fieldsValid = formKey.currentState?.validate() ?? false;
+    
+    if (!fieldsValid) return;
+
+    final extrasValid =
+        isStudent ? validateStudentExtras() : validateMentorExtras();
+    if (!extrasValid) return;
+
+
     Get.snackbar('Succès', 'Inscription finalisée avec succès !');
   }
 
   @override
   void onClose() {
     establishmentController.dispose();
+    specialtyController.dispose();
+    subjectController.dispose();
     expertiseController.dispose();
+    mentorPresentationController.dispose();
+    studentDescriptionController.dispose();
     presentationController.dispose();
     super.onClose();
   }

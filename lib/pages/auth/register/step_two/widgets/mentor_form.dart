@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:study_pair/pages/auth/register/step_two/register_step_two_controller.dart';
 import 'package:study_pair/pages/auth/register/step_two/widgets/section_header.dart';
+import 'package:study_pair/utils/validators.dart';
 
 import '../../../../../theme/app_colors.dart';
 import '../../../../../widgets/app_chip.dart';
@@ -16,7 +17,9 @@ class MentorForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Form(
+      key: controller.formKey,
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const AppText(
@@ -80,6 +83,9 @@ class MentorForm extends StatelessWidget {
         AppTextField(
           controller: controller.establishmentController,
           hint: 'Ex. Télécom Paris, Sorbonne Université...',
+          textInputAction: TextInputAction.next,
+          validator: (value) =>
+              Validators.required(value, 'L\'établissement et la spécialité'),
         ),
         const VGap.md(),
         const AppText(
@@ -222,8 +228,11 @@ class MentorForm extends StatelessWidget {
             children: [
               AppTextField(
                 controller: controller.presentationController,
-                hint: 'Expliquez en 2-3 phrases comment vous aimez accompagner vos binômes, vos créneaux et votre méthode...',
+                hint:
+                    'Expliquez en 2-3 phrases comment vous aimez accompagner vos binômes, vos créneaux et votre méthode...',
                 maxLines: 4,
+                validator: (value) =>
+                    Validators.minLength(value, 20, 'La présentation'),
               ),
               const VGap.sm(),
               const Align(
@@ -308,6 +317,7 @@ class MentorForm extends StatelessWidget {
         ),
         const VGap.xxl(),
       ],
+      ),
     );
   }
 

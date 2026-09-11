@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import 'package:study_pair/pages/auth/register/step_two/register_step_two_controller.dart';
 import 'package:study_pair/pages/auth/register/step_two/widgets/section_header.dart';
+import 'package:study_pair/utils/validators.dart';
 
 import '../../../../../theme/app_colors.dart';
 import '../../../../../widgets/app_chip.dart';
@@ -17,7 +18,9 @@ class StudentForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Form(
+      key: controller.formKey,
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
@@ -85,6 +88,9 @@ class StudentForm extends StatelessWidget {
         AppTextField(
           controller: controller.establishmentController,
           hint: 'Université Paris-Saclay',
+          textInputAction: TextInputAction.next,
+          validator: (value) =>
+              Validators.required(value, 'L\'établissement'),
           prefixIcon: const Icon(Icons.business_outlined, size: 20),
         ),
 
@@ -102,6 +108,8 @@ class StudentForm extends StatelessWidget {
         AppTextField(
           controller: controller.specialtyController,
           hint: 'Licence Informatique & Mathématiques',
+          textInputAction: TextInputAction.next,
+          validator: (value) => Validators.required(value, 'La filière'),
           prefixIcon: const Icon(Icons.book_outlined, size: 20),
         ),
 
@@ -237,24 +245,6 @@ class StudentForm extends StatelessWidget {
 
         const VGap.xl(),
 
-        //  Objectifs
-        const SectionHeader(
-          icon: Icons.flag_outlined,
-          title: 'Vos objectifs d’apprentissage',
-        ),
-
-        const VGap.md(),
-
-        _buildCheckbox(controller, 'Comprendre les cours & TD'),
-
-        _buildCheckbox(controller, 'Méthodologie & organisation'),
-
-        _buildCheckbox(controller, 'Préparation aux partiels'),
-
-        _buildCheckbox(controller, 'Projet de fin d’année'),
-
-        const VGap.xl(),
-
         // Disponibilités & Rythme
         const SectionHeader(
           icon: Icons.calendar_today_outlined,
@@ -341,8 +331,11 @@ class StudentForm extends StatelessWidget {
             children: [
               AppTextField(
                 controller: controller.studentDescriptionController,
-                hint: 'Décrivez brièvement vos attentes, vos points de blocage ou vos objectifs avec votre futur mentor...',
+                hint:
+                    'Décrivez brièvement vos attentes, vos points de blocage ou vos objectifs avec votre futur mentor...',
                 maxLines: 4,
+                validator: (value) =>
+                    Validators.minLength(value, 20, 'La description'),
               ),
 
               const VGap.sm(),
@@ -383,6 +376,7 @@ class StudentForm extends StatelessWidget {
 
         const VGap.xxl(),
       ],
+      ),
     );
   }
 
@@ -396,47 +390,5 @@ class StudentForm extends StatelessWidget {
     }
 
     controller.subjectController.clear();
-  }
-
-  Widget _buildCheckbox(RegisterStepTwoController controller, String title) {
-    return Obx(() {
-      final isChecked = controller.selectedObjectives.contains(title);
-
-      return GestureDetector(
-        onTap: () {
-          controller.toggleObjective(title);
-        },
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isChecked
-                  ? AppColors.primary.withValues(alpha: 0.5)
-                  : Colors.grey.shade200,
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                isChecked ? Icons.check_box : Icons.check_box_outline_blank,
-                color: isChecked ? AppColors.primary : Colors.grey.shade400,
-                size: 20,
-              ),
-              const HGap.md(),
-              Expanded(
-                child: AppText(
-                  title,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
   }
 }

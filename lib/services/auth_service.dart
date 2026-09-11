@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -10,42 +11,80 @@ class AuthService extends GetxService {
   final _db = FirebaseFirestore.instance;
   final _google = GoogleSignIn();
 
+  AuthService to() => Get.find<AuthService>();
   final user = Rxn<UserModel>();
 
   bool get isLoggedIn => _auth.currentUser != null;
   String? get uid => _auth.currentUser?.uid;
 
   Future<AuthService> init() async {
-    print('🔐 AuthService init…');
+    if (kDebugMode) {
+      print('🔐 AuthService init…');
+    }
     _auth.authStateChanges().listen((firebaseUser) async {
       if (firebaseUser == null) {
-        print('👋 Auth: déconnecté');
+        if (kDebugMode) {
+          print('👋 Auth: déconnecté');
+        }
         user.value = null;
         return;
       }
-      print('✅ Auth: session active → ${firebaseUser.email} (${firebaseUser.uid})');
+      if (kDebugMode) {
+        print('✅ Auth: session active → ${firebaseUser.email} (${firebaseUser.uid})');
+      }
       user.value = await _getOrCreateProfile(firebaseUser);
     });
-    print('👀 Écoute authStateChanges activée');
+    if (kDebugMode) {
+      print('👀 Écoute authStateChanges activée');
+    }
     return this;
   }
+  
 
   Future<void> signIn(String email, String password) async {
-    print('🔑 Login email… ($email)');
+    if (kDebugMode) {
+      print('🔑 Login email… ($email)');
+    }
     try {
-      
       final cred = await _auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
-      print('✅ Login OK → ${cred.user?.uid}');
+      if (kDebugMode) {
+        print('✅ Login OK → ${cred.user?.uid}');
+      }
       user.value = await _getOrCreateProfile(cred.user!);
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) {
+        print('❌ Login FAIL → ${e.code}');
+      }
+      throw _mapAuthError(e);
     } catch (e) {
-      print('❌ Login FAIL → $e');
-      rethrow;
+      throw 'Une erreur est survenue. Réessaie.';
     }
   }
-
+  String _mapAuthError(FirebaseAuthException e) {
+      switch (e.code) {
+        case 'invalid-credential':
+        case 'wrong-password':
+        case 'user-not-found':
+          return 'Email ou mot de passe incorrect.';
+        case 'invalid-email':
+          return 'Adresse email invalide.';
+        case 'user-disabled':
+          return 'Ce compte a été désactivé.';
+        case 'too-many-requests':
+          return 'Trop de tentatives. Réessaie plus tard.';
+        case 'email-already-in-use':
+          return 'Cet email est déjà utilisé.';
+        case 'weak-password':
+          return 'Le mot de passe est trop faible.';
+        case 'network-request-failed':
+          return 'Problème de connexion réseau.';
+        default:
+          return 'Une erreur est survenue. Réessaie.';
+      }
+    }
   Future<void> signUp(String name, String email, String password) async {
     print('📝 Register… ($email)');
     try {
