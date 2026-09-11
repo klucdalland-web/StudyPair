@@ -13,6 +13,7 @@ class AppText extends StatelessWidget {
     this.maxLines,
     this.overflow,
     this.height,
+    this.softWrap = true,
   });
 
   final String text;
@@ -23,6 +24,7 @@ class AppText extends StatelessWidget {
   final int? maxLines;
   final TextOverflow? overflow;
   final double? height;
+  final bool softWrap;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +33,7 @@ class AppText extends StatelessWidget {
       textAlign: textAlign,
       maxLines: maxLines,
       overflow: overflow,
+      softWrap: softWrap,
       style: TextStyle(
         fontFamily: 'Poppins',
         fontSize: fontSize,
