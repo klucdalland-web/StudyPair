@@ -1,6 +1,4 @@
 import 'package:get/get.dart';
-import 'package:study_pair/pages/auth/register/step_two/register_step_two_controller.dart';
-import 'package:study_pair/pages/auth/register/step_two/register_step_two_page.dart';
 
 import '../pages/auth/login/login_page.dart';
 import '../pages/auth/register/register_page.dart';
@@ -37,18 +35,6 @@ class AppPages {
       page: () => const RegisterPage(),
       middlewares: [GuestMiddleware()],
       transition: Transition.rightToLeft,
-    ),
-    // Register — infos personnelles (compte déjà créé)
-    GetPage(
-      name: Routes.registerStepTwo,
-      page: () => RegisterStepTwoPage(
-        isStudent: Get.arguments is Map
-            ? (Get.arguments as Map)['isStudent'] as bool? ?? false
-            : false,
-      ),
-      binding: BindingsBuilder(() {
-        Get.put(RegisterStepTwoController());
-      }),
     ),
 
     // Dashboard

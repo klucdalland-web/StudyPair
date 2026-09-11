@@ -1,46 +1,53 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
+
 import '../../../../models/chat_model.dart';
 import '../../../../models/message_model.dart';
-import 'dart:async';
 import '../../../../models/user_model.dart';
+
 class MockChatService extends GetxService {
   final List<UserModel> _users = [
-  UserModel(
-    id: 'user1',
-    displayName: 'Alex Ouedraogo',
-    level: 'Licence en Systèmes d’Information et Réseaux',
-    email: 'alex.exa@example.com'
-  ),
-  UserModel(
-    id: 'user2',
-    displayName: 'Amadou',
-    level: 'Master IA',
-    email: 'amadou@example.com'
-  ),
-  UserModel(
-    id: 'user3',
-    displayName: 'Fatou Ndjai',
-    level: 'Ingénieur DevOps ',
-    email: 'fatou@example.com'
-  ),
-];
+    UserModel(
+      id: 'user1',
+      displayName: 'Alex Ouedraogo',
+      level: 'Licence en Systèmes d’Information et Réseaux',
+      email: 'alex.exa@example.com',
+    ),
+    UserModel(
+      id: 'user2',
+      displayName: 'Amadou',
+      level: 'Master IA',
+      email: 'amadou@example.com',
+    ),
+    UserModel(
+      id: 'user3',
+      displayName: 'Fatou Ndjai',
+      level: 'Ingénieur DevOps ',
+      email: 'fatou@example.com',
+    ),
+  ];
+
   final List<ChatModel> _chats = [
     ChatModel(
       id: 'chat1',
-      participantIds: ['user1', 'user2'],
-      isValidated: true
+      participantIds: const ['user1', 'user2'],
+      isValidated: true,
+      lastMessage: "Ok, je pense que je peux t'aider pour ton projet Web.",
+      lastMessageAt: DateTime.now(),
     ),
-    ChatModel(
+    const ChatModel(
       id: 'chat2',
       participantIds: ['user3', 'user1'],
-      isValidated: true
+      isValidated: true,
     ),
-    ChatModel(
+    const ChatModel(
       id: 'chat3',
       participantIds: ['user2', 'user1'],
-      isValidated: false
+      isValidated: false,
     ),
   ];
+
   final List<MessageModel> _messages = [
     MessageModel(
       id: '1',
@@ -92,15 +99,13 @@ class MockChatService extends GetxService {
     ),
   ];
 
-  final _messageController =
-      StreamController<List<MessageModel>>.broadcast();
+  final _messageController = StreamController<List<MessageModel>>.broadcast();
 
   Stream<List<ChatModel>> watchChats() {
-    return Stream.value(_chats);
+    return Stream.value(List.unmodifiable(_chats));
   }
 
   Stream<List<MessageModel>> watchMessages(String chatId) {
-    // Envoie les messages actuels dès que la page s'abonne.
     Future.microtask(() {
       _messageController.add(
         _messages.where((message) => message.chatId == chatId).toList(),
@@ -116,8 +121,9 @@ class MockChatService extends GetxService {
     DateTime sendAt,
   ) async {
     if (!canSendMessage(chatId)) {
-    
-  }
+      throw Exception('Limite de messages atteinte. Validez la conversation.');
+    }
+
     final message = MessageModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       chatId: chatId,
@@ -128,39 +134,45 @@ class MockChatService extends GetxService {
     );
     _messages.add(message);
 
+    final index = _chats.indexWhere((chat) => chat.id == chatId);
+    if (index != -1) {
+      _chats[index] = _chats[index].copyWith(
+        lastMessage: content,
+        lastMessageAt: sendAt,
+      );
+    }
+
     _messageController.add(
       _messages.where((message) => message.chatId == chatId).toList(),
     );
   }
-bool canSendMessage(String chatId) {
-  final chat = _chats.firstWhere(
-    (chat) => chat.id == chatId,
-  );
 
-  if (chat.isValidated) {
-    return true;
+  bool canSendMessage(String chatId) {
+    final chat = _chats.firstWhere((chat) => chat.id == chatId);
+
+    if (chat.isValidated) return true;
+
+    final messageCount =
+        _messages.where((message) => message.chatId == chatId).length;
+
+    return messageCount < 6;
   }
 
-  final messageCount = _messages
-      .where((message) => message.chatId == chatId)
-      .length;
+  Future<ChatModel> validateChat(String chatId) async {
+    final index = _chats.indexWhere((chat) => chat.id == chatId);
+    if (index == -1) throw Exception('Conversation introuvable');
 
-  return messageCount < 6;
-}
+    _chats[index] = _chats[index].copyWith(isValidated: true);
+    return _chats[index];
+  }
+
+  UserModel getUserById(String userId) {
+    return _users.firstWhere((user) => user.id == userId);
+  }
+
   @override
   void onClose() {
     _messageController.close();
     super.onClose();
   }
-  Future<void> validateChat(String chatId) async {
-  final chat = _chats.firstWhere(
-    (chat) => chat.id == chatId,
-  );
-  chat.isValidated = true;
-}
-UserModel getUserById(String userId) {
-  return _users.firstWhere(
-    (user) => user.id == userId,
-  );
-}
 }

@@ -90,6 +90,7 @@ class AuthService extends GetxService {
     required String lastName,
     required String email,
     required String password,
+    bool isStudent = true,
   }) async {
     print('📝 Register… ($email)');
     try {
@@ -104,6 +105,7 @@ class AuthService extends GetxService {
         email: email.trim(),
         displayName: displayName,
         isOnline: true,
+        isStudent: isStudent,
       );
       await _db.collection('users').doc(profile.id).set(profile.toMap(isNew: true));
       print('✅ Register OK + 📄 Firestore users/${profile.id}');

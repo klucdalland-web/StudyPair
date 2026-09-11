@@ -43,7 +43,11 @@ class ChatTile extends StatelessWidget {
         ),
       ),
 
-      subtitle: Text(user.level??'Impossible de récupérer le niveau'),
+      subtitle: Text(
+        chat.lastMessage ?? user.level ?? 'Aucun message',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
 
       trailing: const Icon(
         Icons.chevron_right,

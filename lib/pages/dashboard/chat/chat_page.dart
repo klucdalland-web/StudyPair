@@ -150,9 +150,8 @@ class _ChatPageState extends State<ChatPage> {
           if (!chat.isValidated)
             AppValidateChat(
               onValidate: () async {
-                await _chats.validateChat(chat.id);
-
-                setState(() {});
+                final updated = await _chats.validateChat(chat.id);
+                setState(() => _chat = updated);
               },
             ),
         ],

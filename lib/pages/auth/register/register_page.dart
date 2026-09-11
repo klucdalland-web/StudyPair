@@ -37,11 +37,9 @@ class _RegisterPageState extends State<RegisterPage> {
         lastName: lastName,
         email: email,
         password: password,
+        isStudent: _isStudentSelected,
       );
-      Get.offNamed(
-        Routes.registerStepTwo,
-        arguments: {'isStudent': _isStudentSelected},
-      );
+      Get.offAllNamed(Routes.dashboard);
     } catch (e) {
       Get.snackbar('Erreur', e.toString());
     } finally {
