@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:study_pair/widgets/app_text.dart';
 
 class MeilleuresCorrespondancesSection extends StatelessWidget {
   const MeilleuresCorrespondancesSection({super.key});
@@ -42,24 +43,24 @@ class MeilleuresCorrespondancesSection extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              const AppText(
                 'Meilleures correspondances',
-                style: TextStyle(
+                // style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
-                ),
+                // ),
               ),
               TextButton(
                 onPressed: () {},
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                child: const Text(
+                child: const AppText(
                   'Par affinité',
-                  style: TextStyle(
+                  // style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
                     fontWeight: FontWeight.w500,
-                  ),
+                  // ),
                 ),
               ),
             ],
@@ -157,33 +158,33 @@ class _ProfilMatchCardState extends State<ProfilMatchCard> {
                   children: [
                     Row(
                       children: [
-                        Text(
+                        AppText(
                           widget.nom,
-                          style: const TextStyle(
+                          // style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
                           ),
-                        ),
+                        // ),
                         const SizedBox(width: 6),
-                        Text(
+                        AppText(
                           widget.affinite,
-                          style: TextStyle(
+                          // style: TextStyle(
                             fontSize: 13,
                             color: Colors.green.shade600,
                             fontWeight: FontWeight.bold,
                           ),
-                        ),
+                        // ),
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text(
+                    AppText(
                       widget.statut,
-                      style: TextStyle(
+                      // style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
                       ),
-                    ),
+                    // ),
                   ],
                 ),
               ),
@@ -207,13 +208,13 @@ class _ProfilMatchCardState extends State<ProfilMatchCard> {
           const SizedBox(height: 12),
 
           // Ligne 2 : Description courte du projet/besoin
-          Text(
+          AppText(
             widget.description,
-            style: const TextStyle(
+            // style: const TextStyle(
               fontSize: 13,
               color: Colors.black87,
               height: 1.3,
-            ),
+            // ),
           ),
           const SizedBox(height: 12),
 
@@ -233,13 +234,13 @@ class _ProfilMatchCardState extends State<ProfilMatchCard> {
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
+                      child: AppText(
                         tag,
-                        style: TextStyle(
+                        // style: TextStyle(
                           fontSize: 11,
                           color: Colors.grey.shade700,
                           fontWeight: FontWeight.w500,
-                        ),
+                        // ),
                       ),
                     );
                   }).toList(),
@@ -250,13 +251,13 @@ class _ProfilMatchCardState extends State<ProfilMatchCard> {
               TextButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.send_rounded, size: 14, color: Color(0xFF636AE8)),
-                label: const Text(
+                label: const AppText(
                   'Proposer',
-                  style: TextStyle(
+                  // style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF636AE8),
-                  ),
+                  // ),
                 ),
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 8),

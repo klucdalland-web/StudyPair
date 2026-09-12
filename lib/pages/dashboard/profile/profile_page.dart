@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:study_pair/controller/profile_controller.dart';
-
+import 'package:study_pair/models/user_model.dart';
 import 'package:study_pair/pages/dashboard/profile/widgets/profile_expertise.dart';
 import 'package:study_pair/pages/dashboard/profile/widgets/profile_settings_list.dart';
 import 'package:study_pair/pages/dashboard/profile/widgets/profile_stats.dart';
-
+import 'package:study_pair/theme/app_colors.dart';
+import 'package:study_pair/widgets/app_avatar.dart';
 import 'package:study_pair/widgets/app_button.dart';
+import 'package:study_pair/widgets/app_chip.dart';
 import 'package:study_pair/widgets/app_header.dart';
+import 'package:study_pair/widgets/app_platform.dart';
+import 'package:study_pair/widgets/app_popup.dart';
+import 'package:study_pair/widgets/app_scaffold.dart';
 import 'package:study_pair/widgets/app_text.dart';
 import 'package:study_pair/widgets/gap.dart';
-import 'package:study_pair/widgets/app_popup.dart';
 import 'package:study_pair/widgets/loading_view.dart';
 
 class ProfilePage extends GetView<ProfileController> {
@@ -21,184 +25,32 @@ class ProfilePage extends GetView<ProfileController> {
     return Obx(() {
       if (controller.isLoading.value) {
         return const Scaffold(
-          backgroundColor: Color(0xFFF8F9FA),
+          backgroundColor: AppColors.background,
           body: LoadingView(message: 'Chargement du profil…'),
         );
       }
+
       final user = controller.user.value;
-      final name = user?.displayName ?? 'Anonyme';
-      final title =
-          user?.level ?? 'Data Engineer chez Doctolib • Mentor Sorbonne';
-      final expertise =
-          user?.subjects ??
-          [
-            'Intelligence Artificielle',
-            'Python & PyTorch',
-            'Relecture Master & CV',
-          ];
 
-      return Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                AppHeader(
-                  label: 'Profil',
-                  showAvatar: false,
-                  onNotificationsTap: () {},
-                ),
-
-                VGap.xl(),
-
-                Stack(
-                  children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 4),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                        image: DecorationImage(
-                          image: NetworkImage(
-                            user?.photoUrl ??
-                                'https://i.pravatar.cc/150?img=47',
-                          ),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 4,
-                      right: 4,
-                      child: Container(
-                        width: 18,
-                        height: 18,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                VGap.md(),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    AppText(
-                      name,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1F2937),
-                    ),
-                    HGap.sm(),
-                    const Icon(
-                      Icons.settings,
-                      size: 20,
-                      color: Color(0xFF6B7280),
-                    ),
-                  ],
-                ),
-
-                VGap.sm(),
-
-                AppText(
-                  title,
-                  fontSize: 14,
-                  color: const Color(0xFF6B7280),
-                  textAlign: TextAlign.center,
-                ),
-
-                VGap.md(),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0E7FF),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF10B981),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      HGap.sm(),
-                      const AppText(
-                        'Disponible pour mentorat',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF4F46E5),
-                      ),
-                    ],
-                  ),
-                ),
-
-                VGap.xl(),
-
-                const ProfileStats(rating: '4.9', hours: '28h', mentees: '3/5'),
-
-                VGap.xl(),
-
-                ProfileExpertise(skills: expertise, onEdit: () {}),
-
-                VGap.xl(),
-
-                ProfileSettingsList(
-                  onAvailabilityTap: () {},
-                  onDiplomaTap: () {},
-                  onNotificationsTap: () {},
-                  onPrivacyTap: () {},
-                ),
-
-                VGap.xl(),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: AppButton(
-                    label: 'Se déconnecter',
-                    variant: AppButtonVariant.danger,
-                    backgroundColor: Colors.white,
-                    textColor: const Color(0xFFEF4444),
-                    icon: Icons.logout_rounded,
-                    onPressed: () => _handleLogout(context),
-                  ),
-                ),
-
-                VGap.md(),
-
-                const AppText(
-                  'StudyPair v2.4.1',
-                  fontSize: 12,
-                  color: Color(0xFF9CA3AF),
-                ),
-
-                VGap.xxl(),
-              ],
+      return AppScaffold(
+        backgroundColor: Colors.white,
+        safeTop: false,
+        body: CustomScrollView(
+          physics: AppPlatform.scrollPhysics,
+          slivers: [
+            const SliverPersistentHeader(
+              pinned: true,
+              delegate: AppHeaderDelegate(
+                heroTag: 'profile-header',
+                title: 'StudyPair',
+                subtitle: 'Profil',
+              ),
             ),
-          ),
+            SliverProfileBody(
+              user: user,
+              onLogout: () => _handleLogout(context),
+            ),
+          ],
         ),
       );
     });
@@ -214,7 +66,155 @@ class ProfilePage extends GetView<ProfileController> {
     );
 
     if (ok != true) return;
-
     await controller.logout();
+  }
+}
+
+class SliverProfileBody extends StatelessWidget {
+  const SliverProfileBody({
+    super.key,
+    required this.user,
+    required this.onLogout,
+  });
+
+  final UserModel? user;
+  final VoidCallback onLogout;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = user?.displayName.trim().isNotEmpty == true
+        ? user!.displayName
+        : 'Anonyme';
+    final subtitle = [
+      if (user?.level?.isNotEmpty == true) user!.level!,
+      if (user?.university?.isNotEmpty == true) user!.university!,
+    ].join(' • ');
+    final expertise = user?.subjects.isNotEmpty == true
+        ? user!.subjects
+        : const <String>[
+            'Intelligence Artificielle',
+            'Python & PyTorch',
+            'Relecture Master & CV',
+          ];
+
+    return SliverToBoxAdapter(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final wide = constraints.maxWidth >= 480;
+          final horizontal = wide ? 32.0 : 20.0;
+
+          return Padding(
+            padding: EdgeInsets.fromLTRB(horizontal, 8, horizontal, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _ProfileIdentity(
+                  name: name,
+                  subtitle: subtitle.isEmpty
+                      ? 'Membre StudyPair'
+                      : subtitle,
+                  photoUrl: user?.photoUrl,
+                  isOnline: user?.isOnline ?? false,
+                  isStudent: user?.isStudent ?? true,
+                ),
+                const VGap.xl(),
+                const ProfileStats(
+                  rating: '4.9',
+                  hours: '28h',
+                  mentees: '3/5',
+                ),
+                const VGap.xl(),
+                ProfileExpertise(skills: expertise, onEdit: () {}),
+                const VGap.xl(),
+                ProfileSettingsList(
+                  onAvailabilityTap: () {},
+                  onDiplomaTap: () {},
+                  onNotificationsTap: () {},
+                  onPrivacyTap: () {},
+                ),
+                const VGap.xl(),
+                AppButton(
+                  label: 'Se déconnecter',
+                  variant: AppButtonVariant.danger,
+                  backgroundColor: AppColors.surface,
+                  textColor: AppColors.danger,
+                  icon: Icons.logout_rounded,
+                  onPressed: onLogout,
+                ),
+                const VGap.md(),
+                const Center(
+                  child: AppText(
+                    'StudyPair v2.4.1',
+                    fontSize: 12,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                const VGap.lg(),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ProfileIdentity extends StatelessWidget {
+  const _ProfileIdentity({
+    required this.name,
+    required this.subtitle,
+    required this.photoUrl,
+    required this.isOnline,
+    required this.isStudent,
+  });
+
+  final String name;
+  final String subtitle;
+  final String? photoUrl;
+  final bool isOnline;
+  final bool isStudent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppAvatar(
+          imageUrl: photoUrl,
+          name: name,
+          size: 96,
+          online: isOnline,
+        ),
+        const VGap.md(),
+        AppText(
+          name,
+          fontSize: 24,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+          textAlign: TextAlign.center,
+        ),
+        const VGap.sm(),
+        AppText(
+          subtitle,
+          fontSize: 14,
+          color: AppColors.textSecondary,
+          textAlign: TextAlign.center,
+        ),
+        const VGap.md(),
+        AppChip(
+          label: isStudent
+              ? 'Disponible pour binôme'
+              : 'Disponible pour mentorat',
+          selected: true,
+          leading: Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: AppColors.online,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

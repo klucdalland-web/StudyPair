@@ -106,9 +106,21 @@ class MockChatService extends GetxService {
   ];
 
   final _messageController = StreamController<List<MessageModel>>.broadcast();
+  final _chatController = StreamController<List<ChatModel>>.broadcast();
+
+  List<UserModel> get users => List.unmodifiable(_users);
+
+  List<UserModel> availableContacts(String currentUserId) {
+    return _users.where((user) => user.id != currentUserId).toList();
+  }
 
   Stream<List<ChatModel>> watchChats() {
-    return Stream.value(List.unmodifiable(_chats));
+    Future.microtask(() {
+      if (!_chatController.isClosed) {
+        _chatController.add(List.unmodifiable(_chats));
+      }
+    });
+    return _chatController.stream;
   }
 
   Stream<List<MessageModel>> watchMessages(String chatId) {
@@ -121,6 +133,28 @@ class MockChatService extends GetxService {
     });
 
     return _messageController.stream;
+  }
+
+  Future<ChatModel> createChat({
+    required String currentUserId,
+    required String otherUserId,
+  }) async {
+    final existingIndex = _chats.indexWhere(
+      (chat) =>
+          chat.participantIds.contains(currentUserId) &&
+          chat.participantIds.contains(otherUserId),
+    );
+    if (existingIndex != -1) return _chats[existingIndex];
+
+    final chat = ChatModel(
+      id: 'chat_${DateTime.now().millisecondsSinceEpoch}',
+      participantIds: [currentUserId, otherUserId],
+      isValidated: false,
+      createdAt: DateTime.now(),
+    );
+    _chats.insert(0, chat);
+    _chatController.add(List.unmodifiable(_chats));
+    return chat;
   }
 
   Future<void> sendMessage(
@@ -150,6 +184,7 @@ class MockChatService extends GetxService {
         lastMessage: content,
         lastMessageAt: sendAt,
       );
+      _chatController.add(List.unmodifiable(_chats));
     }
 
     _messageController.add(
@@ -173,16 +208,25 @@ class MockChatService extends GetxService {
     if (index == -1) throw Exception('Conversation introuvable');
 
     _chats[index] = _chats[index].copyWith(isValidated: true);
+    _chatController.add(List.unmodifiable(_chats));
     return _chats[index];
   }
 
   UserModel getUserById(String userId) {
-    return _users.firstWhere((user) => user.id == userId);
+    return _users.firstWhere(
+      (user) => user.id == userId,
+      orElse: () => UserModel(
+        id: userId,
+        email: '',
+        displayName: 'Utilisateur',
+      ),
+    );
   }
 
   @override
   void onClose() {
     _messageController.close();
+    _chatController.close();
     super.onClose();
   }
 }

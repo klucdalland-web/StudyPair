@@ -27,28 +27,22 @@ class DemandesPage extends GetView<DemandesController> {
       }
 
       return AppScaffold(
-        backgroundColor: AppColors.background,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AppHeader(
-              label: 'Créneaux & disponibilités',
-              avatarUrl: controller.user.value?['photoUrl'] as String?,
-              hasUnreadNotifications: controller.hasUnreadNotifications,
-              onNotificationsTap: controller.onNotificationsTap,
-              onAvatarTap: controller.onAvatarTap,
+        backgroundColor: Colors.white,
+        safeTop: false,
+        body: CustomScrollView(
+          physics: AppPlatform.scrollPhysics,
+          slivers: [
+            const SliverPersistentHeader(
+              pinned: true,
+              delegate: AppHeaderDelegate(
+                title: 'StudyPair',
+                subtitle: 'Créneaux & disponibilités',
+              ),
             ),
-            Expanded(
-              child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                ),
-                child: SingleChildScrollView(
-                  physics: AppPlatform.scrollPhysics,
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-                  child: Obx(() => _buildContenu(controller)),
-                ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+                child: Obx(() => _buildContenu(controller)),
               ),
             ),
           ],

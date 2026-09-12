@@ -15,6 +15,8 @@ class AppHeader extends StatelessWidget {
     this.icon = Icons.school_outlined,
   });
 
+  static const double height = 80;
+
   final String label;
   final bool showAvatar;
 
@@ -81,6 +83,152 @@ class AppHeader extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class AppHeaderDelegate extends SliverPersistentHeaderDelegate {
+  const AppHeaderDelegate({
+    this.heroTag = 'demandes-header',
+    this.imageAsset = 'assets/images/screen-removebg-preview.png',
+    this.title = 'StudyPair',
+    this.subtitle = 'Créneaux & disponibilités',
+    this.showBackButton = true,
+  });
+
+  final String heroTag;
+  final String imageAsset;
+  final String title;
+  final String subtitle;
+  final bool showBackButton;
+
+  static const double _maxExtent = 300;
+  static const double _minExtent = 150;
+  static const double _sheetHandleHeight = 25;
+
+  @override
+  double get maxExtent => _maxExtent;
+
+  @override
+  double get minExtent => _minExtent;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final topPadding = MediaQuery.paddingOf(context).top;
+    final progress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
+
+    return ColoredBox(
+      color: Colors.transparent,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: Hero(
+              tag: heroTag,
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppColors.primary, AppColors.primaryDark],
+                  ),
+                ),
+                child: Opacity(
+                  opacity: 1 - (progress * 0.35),
+                  child: Image.asset(
+                    imageAsset,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: _sheetHandleHeight + 16,
+            child: Opacity(
+              opacity: (1 - progress).clamp(0.0, 1.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    title,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textOnPrimary,
+                  ),
+                  const VGap.xs(),
+                  AppText(
+                    subtitle,
+                    fontSize: 13,
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.9),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (showBackButton)
+            Positioned(
+              top: topPadding + 10,
+              left: 10,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).maybePop(),
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: _sheetHandleHeight,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Center(
+                child: Container(
+                  height: 5,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant AppHeaderDelegate oldDelegate) {
+    return heroTag != oldDelegate.heroTag ||
+        imageAsset != oldDelegate.imageAsset ||
+        title != oldDelegate.title ||
+        subtitle != oldDelegate.subtitle ||
+        showBackButton != oldDelegate.showBackButton;
   }
 }
 
