@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:study_pair/controller/demande_controller.dart';
 import 'package:study_pair/pages/dashboard/demandes/demandes_page.dart';
+import 'package:study_pair/widgets/app_text.dart';
 
 class MesMatchsComplet extends StatefulWidget {
   const MesMatchsComplet({Key? key}) : super(key: key);
@@ -36,13 +37,13 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
               // Partie Gauche : Titre + Badge
               Row(
                 children: [
-                  const Text(
+                   AppText(
                     'Mes Matchs',
-                    style: TextStyle(
+                    // style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
-                    ),
+                    // ),
                   ),
                   const SizedBox(width: 8),
                   Container(
@@ -54,13 +55,13 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
                       color: Colors.purple.shade50,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(
+                    child: AppText(
                       '• 4 récents',
-                      style: TextStyle(
+                      // style: TextStyle(
                         fontSize: 12,
                         color: Colors.purple.shade700,
                         fontWeight: FontWeight.w500,
-                      ),
+                      // ),
                     ),
                   ),
                 ],
@@ -80,13 +81,13 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
                 ),
                 child: Row(
                   children: const [
-                    Text(
+                    AppText(
                       'Demandes',
-                      style: TextStyle(
+                      // style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
                         fontWeight: FontWeight.w500,
-                      ),
+                      // ),
                     ),
                     SizedBox(width: 4),
                     Icon(Icons.arrow_forward, color: Colors.grey, size: 18),
@@ -130,15 +131,15 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
                     ),
                   ),
                   alignment: Alignment.center,
-                  child: Text(
+                  child: AppText(
                     filtres[index],
-                    style: TextStyle(
+                    // style: TextStyle(
                       color: estSelectionne ? Colors.white : Colors.black87,
                       fontSize: 13,
                       fontWeight: estSelectionne
                           ? FontWeight.bold
                           : FontWeight.normal,
-                    ),
+                    // ),
                   ),
                 ),
               );

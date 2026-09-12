@@ -1,142 +1,208 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:study_pair/models/chat_model.dart';
+import 'package:study_pair/models/user_model.dart';
+import 'package:study_pair/pages/dashboard/chats/services/mock_chat_service.dart';
+import 'package:study_pair/pages/dashboard/chats/widgets/chat_tile.dart';
+import 'package:study_pair/routes/app_routes.dart';
+import 'package:study_pair/services/auth_service.dart';
+import 'package:study_pair/theme/app_colors.dart';
+import 'package:study_pair/widgets/app_avatar.dart';
+import 'package:study_pair/widgets/app_button.dart';
 import 'package:study_pair/widgets/app_header.dart';
+import 'package:study_pair/widgets/app_platform.dart';
+import 'package:study_pair/widgets/app_popup.dart';
+import 'package:study_pair/widgets/app_scaffold.dart';
+import 'package:study_pair/widgets/app_text.dart';
+import 'package:study_pair/widgets/app_text_field.dart';
+import 'package:study_pair/widgets/empty_view.dart';
+import 'package:study_pair/widgets/gap.dart';
+import 'package:study_pair/widgets/loading_view.dart';
 
-import '../../../models/chat_model.dart';
-import '../../../routes/app_routes.dart';
-import '../../../services/auth_service.dart';
-import '../chats/services/mock_chat_service.dart';
-import 'widgets/chat_tile.dart';
-
-class ChatsPage extends StatelessWidget {
+class ChatsPage extends StatefulWidget {
   const ChatsPage({super.key});
 
-  static const _bg = Color(0xFFF5F6F8);
-  static const _surface = Colors.white;
-  static const _primary = Color(0xFF3A6EA5);
-  static const _textPrimary = Color(0xFF1F2937);
-  static const _textSecondary = Color(0xFF6B7280);
+  @override
+  State<ChatsPage> createState() => _ChatsPageState();
+}
+
+class _ChatsPageState extends State<ChatsPage> {
+  final _search = TextEditingController();
+  String _query = '';
+
+  MockChatService get _chats => Get.find<MockChatService>();
+  AuthService get _auth => Get.find<AuthService>();
+
+  /// Mock actuel : les conversations tournent autour de `user1`.
+  String get _currentUserId => _auth.uid ?? 'user1';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _createConversation() async {
+    final contacts = _chats.availableContacts(_currentUserId);
+    if (contacts.isEmpty) {
+      Get.snackbar('Info', 'Aucun contact disponible pour le moment.');
+      return;
+    }
+
+    final selected = await showAppBottomSheet<UserModel>(
+      context: context,
+      title: 'Nouvelle conversation',
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.45,
+        ),
+        child: ListView.separated(
+          shrinkWrap: true,
+          itemCount: contacts.length,
+          separatorBuilder: (_, _) => const Divider(
+            height: 1,
+            color: AppColors.divider,
+          ),
+          itemBuilder: (_, i) {
+            final user = contacts[i];
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: AppAvatar(
+                imageUrl: user.photoUrl,
+                name: user.displayName,
+                size: 44,
+                online: user.isOnline,
+              ),
+              title: AppText(
+                user.displayName,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+              subtitle: AppText(
+                user.level ?? user.email,
+                fontSize: 12,
+                color: AppColors.textSecondary,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () => Navigator.of(context).pop(user),
+            );
+          },
+        ),
+      ),
+    );
+
+    if (selected == null || !mounted) return;
+
+    final chat = await _chats.createChat(
+      currentUserId: _currentUserId,
+      otherUserId: selected.id,
+    );
+
+    await Get.toNamed(Routes.chatPath(chat.id), arguments: chat);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final chats = Get.find<MockChatService>();
-    final auth = Get.find<AuthService>();
-
-    return Scaffold(
-      backgroundColor: _bg,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            AppHeader(
-              label: 'Conversations',
-              showAvatar: false,
-              onNotificationsTap: () {},
+    return AppScaffold(
+      backgroundColor: Colors.white,
+      safeTop: false,
+      safeBottom: false,
+      body: CustomScrollView(
+        physics: AppPlatform.scrollPhysics,
+        slivers: [
+          const SliverChatsHeader(),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+              child: Column(
+                children: [
+                  AppSearchField(
+                    controller: _search,
+                    hint: 'Rechercher une conversation…',
+                    onChanged: (q) =>
+                        setState(() => _query = q.trim().toLowerCase()),
+                  ),
+                  const VGap.md(),
+                  AppButton(
+                    label: 'Créer une conversation',
+                    icon: Icons.add_comment_rounded,
+                    onPressed: _createConversation,
+                  ),
+                ],
+              ),
             ),
+          ),
+          StreamBuilder<List<ChatModel>>(
+            stream: _chats.watchChats(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting &&
+                  !snapshot.hasData) {
+                return const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: LoadingView(message: 'Chargement des messages…'),
+                );
+              }
 
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
-              child: _SearchBar(),
-            ),
+              final list = (snapshot.data ?? []).where((chat) {
+                if (_query.isEmpty) return true;
+                final otherId = chat.participantIds.firstWhere(
+                  (id) => id != _currentUserId,
+                  orElse: () => '',
+                );
+                final user = _chats.getUserById(otherId);
+                final haystack = [
+                  user.displayName,
+                  user.level ?? '',
+                  chat.lastMessage ?? '',
+                ].join(' ').toLowerCase();
+                return haystack.contains(_query);
+              }).toList();
 
-            Expanded(
-              child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  color: _surface,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                ),
-                child: StreamBuilder<List<ChatModel>>(
-                  stream: chats.watchChats(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: _primary),
-                      );
-                    }
+              if (list.isEmpty) {
+                return SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: EmptyView(
+                    message:
+                        'Aucune conversation.\nDémarrez un échange avec un binôme ou un tuteur.',
+                    icon: Icons.chat_bubble_outline_rounded,
+                    actionLabel: 'Créer une conversation',
+                    onAction: _createConversation,
+                  ),
+                );
+              }
 
-                    final list = snapshot.data ?? [];
+              return SliverPadding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 32),
+                sliver: SliverList.separated(
+                  itemCount: list.length,
+                  separatorBuilder: (_, _) => const Divider(
+                    height: 1,
+                    indent: 76,
+                    endIndent: 12,
+                    color: AppColors.divider,
+                  ),
+                  itemBuilder: (_, i) {
+                    final chat = list[i];
+                    final otherId = chat.participantIds.firstWhere(
+                      (id) => id != _currentUserId,
+                      orElse: () => '',
+                    );
+                    final otherUser = _chats.getUserById(otherId);
 
-                    if (list.isEmpty) {
-                      return const _EmptyState();
-                    }
-
-                    return ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(8, 16, 8, 24),
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: list.length,
-                      separatorBuilder: (_, __) => const Divider(
-                        height: 1,
-                        thickness: 1,
-                        indent: 84,
-                        endIndent: 16,
-                        color: Color(0xFFEEF0F3),
+                    return ChatTile(
+                      chat: chat,
+                      user: otherUser,
+                      onTap: () => Get.toNamed(
+                        Routes.chatPath(chat.id),
+                        arguments: chat,
                       ),
-                      itemBuilder: (_, i) {
-                        final chat = list[i];
-
-                        final otherId = chat.participantIds.firstWhere(
-                          (id) => id != auth.uid,
-                          orElse: () => 'Chat',
-                        );
-
-                        final otherUser = chats.getUserById(otherId);
-
-                        return InkWell(
-                          onTap: () => Get.toNamed(
-                            Routes.chatPath(chat.id),
-                            arguments: chat,
-                          ),
-                          child: ChatTile(chat: chat, user: otherUser),
-                        );
-                      },
                     );
                   },
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SearchBar extends StatelessWidget {
-  const _SearchBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 46,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: ChatsPage._surface,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: const [
-          Icon(Icons.search_rounded, size: 20, color: ChatsPage._textSecondary),
-          SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                isCollapsed: true,
-                border: InputBorder.none,
-                hintText: 'Rechercher une conversation…',
-                hintStyle: TextStyle(
-                  fontSize: 14,
-                  color: ChatsPage._textSecondary,
-                ),
-              ),
-              style: TextStyle(fontSize: 14, color: ChatsPage._textPrimary),
-            ),
+              );
+            },
           ),
         ],
       ),
@@ -144,51 +210,18 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+class SliverChatsHeader extends StatelessWidget {
+  const SliverChatsHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                color: ChatsPage._primary.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.chat_bubble_outline_rounded,
-                size: 44,
-                color: ChatsPage._primary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Aucune conversation',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: ChatsPage._textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Démarrez un échange avec un binôme ou un tuteur\npour le voir apparaître ici.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.4,
-                color: ChatsPage._textSecondary,
-              ),
-            ),
-          ],
-        ),
+    return const SliverPersistentHeader(
+      pinned: true,
+      delegate: AppHeaderDelegate(
+        heroTag: 'chats-header',
+        title: 'StudyPair',
+        subtitle: 'Messages',
+        showBackButton: false,
       ),
     );
   }

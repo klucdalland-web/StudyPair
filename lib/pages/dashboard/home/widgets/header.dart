@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:study_pair/widgets/app_text.dart';
 
 import '../../../../routes/app_routes.dart';
 import '../../../../services/auth_service.dart';
@@ -27,21 +28,23 @@ class Header extends StatelessWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AppText(
                     'Bonjour $firstName',
-                    style: const TextStyle(
-                      color: AppColors.textOnPrimary,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                     color: AppColors.textOnPrimary,
+                    // style: const TextStyle(
+                    //   color: AppColors.textOnPrimary,
+                    //   fontSize: 22,
+                    //   fontWeight: FontWeight.bold,
+                    // ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
+                  AppText(
                     'Que souhaitez-vous faire ?',
-                    style: TextStyle(
                       color: AppColors.textOnPrimary.withValues(alpha: 0.9),
                       fontSize: 16,
-                    ),
+                    
                   ),
                 ],
               );

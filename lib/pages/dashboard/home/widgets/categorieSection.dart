@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:study_pair/widgets/app_text.dart';
 
 import '../../../../theme/app_colors.dart';
 
@@ -59,17 +60,16 @@ class Categoriesection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text(
+                  AppText(
                     category.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
                       color: AppColors.textPrimary.withValues(alpha: 0.7),
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
-                  ),
+                  
                 ],
               ),
             );
