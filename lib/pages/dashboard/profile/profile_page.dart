@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:study_pair/controller/profile_controller.dart';
 import 'package:study_pair/models/user_model.dart';
+import 'package:study_pair/pages/dashboard/profile/widgets/profile_edit_sheet.dart';
 import 'package:study_pair/pages/dashboard/profile/widgets/profile_expertise.dart';
 import 'package:study_pair/pages/dashboard/profile/widgets/profile_settings_list.dart';
 import 'package:study_pair/pages/dashboard/profile/widgets/profile_stats.dart';
@@ -48,6 +49,9 @@ class ProfilePage extends GetView<ProfileController> {
             ),
             SliverProfileBody(
               user: user,
+              onEdit: user == null
+                  ? null
+                  : () => showProfileEditSheet(context: context, user: user),
               onLogout: () => _handleLogout(context),
             ),
           ],
@@ -75,10 +79,12 @@ class SliverProfileBody extends StatelessWidget {
     super.key,
     required this.user,
     required this.onLogout,
+    this.onEdit,
   });
 
   final UserModel? user;
   final VoidCallback onLogout;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -89,13 +95,7 @@ class SliverProfileBody extends StatelessWidget {
       if (user?.level?.isNotEmpty == true) user!.level!,
       if (user?.university?.isNotEmpty == true) user!.university!,
     ].join(' • ');
-    final expertise = user?.subjects.isNotEmpty == true
-        ? user!.subjects
-        : const <String>[
-            'Intelligence Artificielle',
-            'Python & PyTorch',
-            'Relecture Master & CV',
-          ];
+    final expertise = user?.subjects ?? const <String>[];
 
     return SliverToBoxAdapter(
       child: LayoutBuilder(
@@ -116,6 +116,7 @@ class SliverProfileBody extends StatelessWidget {
                   photoUrl: user?.photoUrl,
                   isOnline: user?.isOnline ?? false,
                   isStudent: user?.isStudent ?? true,
+                  onEdit: onEdit,
                 ),
                 const VGap.xl(),
                 const ProfileStats(
@@ -124,7 +125,10 @@ class SliverProfileBody extends StatelessWidget {
                   mentees: '3/5',
                 ),
                 const VGap.xl(),
-                ProfileExpertise(skills: expertise, onEdit: () {}),
+                ProfileExpertise(
+                  skills: expertise,
+                  onEdit: onEdit ?? () {},
+                ),
                 const VGap.xl(),
                 ProfileSettingsList(
                   onAvailabilityTap: () {},
@@ -166,6 +170,7 @@ class _ProfileIdentity extends StatelessWidget {
     required this.photoUrl,
     required this.isOnline,
     required this.isStudent,
+    this.onEdit,
   });
 
   final String name;
@@ -173,16 +178,39 @@ class _ProfileIdentity extends StatelessWidget {
   final String? photoUrl;
   final bool isOnline;
   final bool isStudent;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        AppAvatar(
-          imageUrl: photoUrl,
-          name: name,
-          size: 96,
-          online: isOnline,
+        Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            AppAvatar(
+              imageUrl: photoUrl,
+              name: name,
+              size: 96,
+              online: isOnline,
+            ),
+            if (onEdit != null)
+              Material(
+                color: AppColors.primary,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: onEdit,
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.edit_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         const VGap.md(),
         AppText(

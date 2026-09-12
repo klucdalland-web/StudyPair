@@ -5,7 +5,9 @@ import 'package:study_pair/pages/dashboard/demandes/demandes_page.dart';
 import 'package:study_pair/widgets/app_text.dart';
 
 class MesMatchsComplet extends StatefulWidget {
-  const MesMatchsComplet({Key? key}) : super(key: key);
+  const MesMatchsComplet({super.key, this.count = 0});
+
+  final int count;
 
   @override
   State<MesMatchsComplet> createState() => _MesMatchsCompletState();
@@ -56,12 +58,10 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: AppText(
-                      '• 4 récents',
-                      // style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.purple.shade700,
-                        fontWeight: FontWeight.w500,
-                      // ),
+                      '• ${widget.count} profil${widget.count > 1 ? 's' : ''}',
+                      fontSize: 12,
+                      color: Colors.purple.shade700,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
