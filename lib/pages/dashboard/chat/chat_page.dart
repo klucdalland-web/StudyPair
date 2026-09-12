@@ -176,8 +176,8 @@ class _ChatPageState extends State<ChatPage> {
 
                           return MessageBubble(
                             content: m.content,
-                            mine: m.senderId == 'user1',
-                            sendAt: m.sendAt,
+                            mine: m.senderId == 'user1', sendAt: DateTime.now(),
+                            // sendAt: '',
                           );
                         },
                       ),

@@ -31,9 +31,7 @@ class ChatService extends GetxService {
         .orderBy('createdAt')
         .snapshots()
         .map(
-          (s) => s.docs
-              .map((d) => MessageModel.fromDoc(d, chatId: chatId))
-              .toList(),
+          (s) => s.docs.map(MessageModel.fromDoc).toList(),
         );
   }
 
@@ -45,10 +43,11 @@ class ChatService extends GetxService {
         .doc();
     final message = MessageModel(
       id: ref.id,
-      chatId: chatId,
+      conversationId: chatId,
       senderId: _uid,
+      senderName: _auth.currentUser?.displayName ?? '',
       content: content,
-      sendAt: sendAt,
+      createdAt: sendAt,
       isRead: false,
     );
     final batch = _db.batch();

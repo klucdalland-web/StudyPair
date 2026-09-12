@@ -48,53 +48,59 @@ class MockChatService extends GetxService {
     ),
   ];
 
-  final List<MessageModel> _messages = [
+  late final List<MessageModel> _messages = [
     MessageModel(
       id: '1',
-      chatId: 'chat1',
+      conversationId: 'chat1',
       senderId: 'user1',
+      senderName: 'Alex Ouedraogo',
       content: 'Bonjour, tu vas  bien ?',
-      sendAt: DateTime.now(),
+      createdAt: DateTime.now(),
       isRead: true,
     ),
     MessageModel(
       id: '2',
-      chatId: 'chat1',
+      conversationId: 'chat1',
       senderId: 'user2',
+      senderName: 'Amadou',
       content: 'Ça va bien et chez toi ?',
-      sendAt: DateTime.now(),
+      createdAt: DateTime.now(),
       isRead: true,
     ),
     MessageModel(
       id: '3',
-      chatId: 'chat1',
+      conversationId: 'chat1',
       senderId: 'user1',
+      senderName: 'Alex Ouedraogo',
       content: "Ça va aussi, j'ai besoin d'aide pour mon projet.",
-      sendAt: DateTime.now(),
+      createdAt: DateTime.now(),
       isRead: true,
     ),
     MessageModel(
       id: '4',
-      chatId: 'chat1',
+      conversationId: 'chat1',
       senderId: 'user2',
+      senderName: 'Amadou',
       content: "Tu peux m'en dire plus sur ton projet ?",
-      sendAt: DateTime.now(),
+      createdAt: DateTime.now(),
       isRead: true,
     ),
     MessageModel(
       id: '5',
-      chatId: 'chat1',
+      conversationId: 'chat1',
       senderId: 'user1',
+      senderName: 'Alex Ouedraogo',
       content: "Oui, c'est un projet de web development.",
-      sendAt: DateTime.now(),
+      createdAt: DateTime.now(),
       isRead: true,
     ),
     MessageModel(
       id: '6',
-      chatId: 'chat1',
+      conversationId: 'chat1',
       senderId: 'user2',
+      senderName: 'Amadou',
       content: "Ok, je pense que je peux t'aider pour ton projet Web.",
-      sendAt: DateTime.now(),
+      createdAt: DateTime.now(),
       isRead: true,
     ),
   ];
@@ -108,7 +114,9 @@ class MockChatService extends GetxService {
   Stream<List<MessageModel>> watchMessages(String chatId) {
     Future.microtask(() {
       _messageController.add(
-        _messages.where((message) => message.chatId == chatId).toList(),
+        _messages
+            .where((message) => message.conversationId == chatId)
+            .toList(),
       );
     });
 
@@ -124,12 +132,14 @@ class MockChatService extends GetxService {
       throw Exception('Limite de messages atteinte. Validez la conversation.');
     }
 
+    final sender = getUserById('user1');
     final message = MessageModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      chatId: chatId,
-      senderId: 'user1',
+      conversationId: chatId,
+      senderId: sender.id,
+      senderName: sender.displayName,
       content: content,
-      sendAt: sendAt,
+      createdAt: sendAt,
       isRead: false,
     );
     _messages.add(message);
@@ -143,7 +153,7 @@ class MockChatService extends GetxService {
     }
 
     _messageController.add(
-      _messages.where((message) => message.chatId == chatId).toList(),
+      _messages.where((message) => message.conversationId == chatId).toList(),
     );
   }
 
@@ -153,7 +163,7 @@ class MockChatService extends GetxService {
     if (chat.isValidated) return true;
 
     final messageCount =
-        _messages.where((message) => message.chatId == chatId).length;
+        _messages.where((message) => message.conversationId == chatId).length;
 
     return messageCount < 6;
   }
