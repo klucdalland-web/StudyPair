@@ -3,19 +3,26 @@ import 'package:study_pair/theme/app_colors.dart';
 import 'package:study_pair/widgets/app_text.dart';
 import 'package:study_pair/widgets/gap.dart';
 
-class DemandesHeader extends StatelessWidget {
-  const DemandesHeader({
+class AppHeader extends StatelessWidget {
+  const AppHeader({
     super.key,
+    required this.label,
+    this.showAvatar = true,
     this.avatarUrl,
-    this.hasUnreadNotifications = true,
+    this.hasUnreadNotifications = false,
     this.onNotificationsTap,
     this.onAvatarTap,
+    this.icon = Icons.school_outlined,
   });
+
+  final String label;
+  final bool showAvatar;
 
   final String? avatarUrl;
   final bool hasUnreadNotifications;
   final VoidCallback? onNotificationsTap;
   final VoidCallback? onAvatarTap;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -30,28 +37,20 @@ class DemandesHeader extends StatelessWidget {
               color: AppColors.primary,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(
-              Icons.school_outlined,
-              color: Colors.white,
-              size: 22,
-            ),
+            child: Icon(icon, color: Colors.white, size: 22),
           ),
           const HGap.sm(),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppText(
+                const AppText(
                   'StudyPair',
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
                 ),
-                AppText(
-                  'Créneaux Disponibilités',
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
+                AppText(label, fontSize: 12, color: AppColors.textSecondary),
               ],
             ),
           ),
@@ -59,17 +58,26 @@ class DemandesHeader extends StatelessWidget {
             hasUnread: hasUnreadNotifications,
             onTap: onNotificationsTap,
           ),
-          const HGap.sm(),
-          GestureDetector(
-            onTap: onAvatarTap,
-            child: CircleAvatar(
-              radius: 20,
-              backgroundColor: AppColors.border,
-              backgroundImage: avatarUrl != null
-                  ? NetworkImage(avatarUrl!)
-                  : null,
+          if (showAvatar) ...[
+            const HGap.sm(),
+            GestureDetector(
+              onTap: onAvatarTap,
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: AppColors.border,
+                backgroundImage: avatarUrl != null
+                    ? NetworkImage(avatarUrl!)
+                    : null,
+                child: avatarUrl == null
+                    ? const Icon(
+                        Icons.person,
+                        size: 20,
+                        color: AppColors.textSecondary,
+                      )
+                    : null,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

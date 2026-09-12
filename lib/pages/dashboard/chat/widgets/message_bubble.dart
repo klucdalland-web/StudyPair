@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:study_pair/widgets/app_text.dart';
+
 import '../utils/date_formater.dart';
+
 class MessageBubble extends StatelessWidget {
   const MessageBubble({
     super.key,
@@ -28,12 +31,9 @@ class MessageBubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(content),
+            AppText(content),
             const SizedBox(height: 4),
-            Text(
-              formatMessageDate(sendAt),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            AppText(formatMessageDate(sendAt)),
           ],
         ),
       ),

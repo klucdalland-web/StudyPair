@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:study_pair/controller/chat_controller.dart';
+import 'package:study_pair/controller/profile_controller.dart';
 import 'package:study_pair/pages/auth/register/step_two/register_step_two_page.dart';
 
 import '../pages/auth/login/login_page.dart';
@@ -23,7 +25,6 @@ class AppPages {
       page: () => const SplashPage(),
       transition: Transition.fadeIn,
     ),
-
     // Auth
     GetPage(
       name: Routes.login,
@@ -46,7 +47,6 @@ class AppPages {
             : false,
       ),
     ),
-
     // Dashboard
     GetPage(
       name: Routes.dashboard,
@@ -55,17 +55,19 @@ class AppPages {
       // middlewares: [AuthMiddleware()],
       transition: Transition.fadeIn,
     ),
+    // Profile
     GetPage(
       name: Routes.profile,
       page: () => const ProfilePage(),
-      // middlewares: [AuthMiddleware()],
-      transition: Transition.rightToLeft,
+      binding: ProfileBinding(),
     ),
+    // Messages
     GetPage(
       name: Routes.chat,
       page: () => const ChatPage(),
       // middlewares: [AuthMiddleware()],
       transition: Transition.rightToLeft,
+      binding: ChatBinding(),
     ),
   ];
 }
