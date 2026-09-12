@@ -31,9 +31,7 @@ class ChatService extends GetxService {
         .orderBy('createdAt')
         .snapshots()
         .map(
-          (s) => s.docs
-              .map((d) => MessageModel.fromDoc(d, chatId: chatId))
-              .toList(),
+          (s) => s.docs.map(MessageModel.fromDoc).toList(),
         );
   }
 
@@ -45,10 +43,11 @@ class ChatService extends GetxService {
         .doc();
     final message = MessageModel(
       id: ref.id,
-      chatId: chatId,
+      conversationId: chatId,
       senderId: _uid,
+      senderName: _auth.currentUser?.displayName ?? '',
       content: content,
-      sendAt:sendAt,
+      createdAt: sendAt,
       isRead: false,
     );
     final batch = _db.batch();
@@ -56,8 +55,28 @@ class ChatService extends GetxService {
     batch.update(_db.collection('chats').doc(chatId), {
       'lastMessage': message.content,
       'lastMessageAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
     await batch.commit();
   }
 
+  Future<void> validateChat(String chatId) async {
+    await _db.collection('chats').doc(chatId).update({
+      'isValidated': true,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> createChat({
+    required List<String> participantIds,
+    bool isValidated = false,
+  }) async {
+    final ref = _db.collection('chats').doc();
+    final chat = ChatModel(
+      id: ref.id,
+      participantIds: participantIds,
+      isValidated: isValidated,
+    );
+    await ref.set(chat.toMap(isNew: true));
+  }
 }

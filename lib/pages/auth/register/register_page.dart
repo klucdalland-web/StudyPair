@@ -4,6 +4,7 @@ import 'package:study_pair/pages/auth/register/widgets/profile_selector.dart';
 import 'package:study_pair/pages/auth/register/widgets/register_footer.dart';
 import 'package:study_pair/pages/auth/register/widgets/register_form.dart';
 import 'package:study_pair/pages/auth/register/widgets/register_header.dart';
+import 'package:study_pair/services/auth_service.dart';
 
 import '../../../../routes/app_routes.dart';
 import '../../../../widgets/app_scaffold.dart';
@@ -17,11 +18,46 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  // État pour la sélection du profil (true = Étudiant, false = Mentor)
   bool _isStudentSelected = true;
-
-  // État pour la case à cocher RGPD
   bool _acceptTerms = false;
+  bool _loading = false;
+
+  final _auth = Get.find<AuthService>();
+
+  Future<void> _run(Future<void> Function() action) async {
+    setState(() => _loading = true);
+    try {
+      await action();
+      Get.offAllNamed(Routes.dashboard);
+    } catch (e) {
+      Get.snackbar('Erreur', e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _createAccount({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+  }) {
+    return _run(
+      () => _auth.signUp(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+        isStudent: _isStudentSelected,
+      ),
+    );
+  }
+
+  Future<void> _createAccountWithGoogle() {
+    return _run(
+      () => _auth.signUpWithGoogle(isStudent: _isStudentSelected),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,29 +70,23 @@ class _RegisterPageState extends State<RegisterPage> {
             const RegisterHeader(),
             const VGap.xl(),
 
-            // Section Choix du profil
             ProfileSelector(
               isStudentSelected: _isStudentSelected,
               onProfileSelected: (bool isStudent) {
-                setState(() {
-                  _isStudentSelected = isStudent;
-                });
+                setState(() => _isStudentSelected = isStudent);
               },
             ),
 
             const VGap.xl(),
 
-            // Formulaire d'inscription
             RegisterForm(
               acceptTerms: _acceptTerms,
+              loading: _loading,
               onTermsChanged: (bool? value) {
-                setState(() {
-                  _acceptTerms = value ?? false;
-                });
+                setState(() => _acceptTerms = value ?? false);
               },
-              onSubmit: () {
-                Get.toNamed(Routes.registerStepTwo, arguments: {'isStudent': _isStudentSelected});
-              },
+              onSubmit: _createAccount,
+              onGoogleSignUp: _createAccountWithGoogle,
             ),
 
             const VGap.xl(),

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:study_pair/pages/dashboard/home/widgets/categorieSection.dart';
-import 'package:study_pair/pages/dashboard/home/widgets/demandesrecentes.dart';
 import 'package:study_pair/pages/dashboard/home/widgets/header.dart';
 import 'package:study_pair/pages/dashboard/home/widgets/search.dart';
 import 'package:study_pair/pages/dashboard/match/widgets/correspondance.dart';
@@ -13,7 +11,6 @@ import 'package:study_pair/widgets/gap.dart';
 import '../../../models/user_model.dart';
 import '../../../services/match_service.dart';
 import '../../../services/user_service.dart';
-import 'widgets/partner_tile.dart';
 
 class MatchPage extends StatefulWidget {
   const MatchPage({super.key});
@@ -96,7 +93,7 @@ class _MatchPageState extends State<MatchPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     MesMatchsComplet(),
-                    MeilleuresCorrespondancesSection()
+                    MeilleuresCorrespondancesSection(),
                   ],
                 ),
               ),
@@ -105,10 +102,7 @@ class _MatchPageState extends State<MatchPage> {
         ],
       ),
     );
-    
-    
-    
-    
+
     // Scaffold(
     //   appBar: AppBar(title: const Text('Trouver un binôme')),
     //   body: MesMatchsComplet(),

@@ -118,7 +118,12 @@ class AppScaffold extends StatelessWidget {
       child: Scaffold(
         backgroundColor: bg,
         appBar: preferredAppBar,
-        body: content,
+        body: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          child: content),
         floatingActionButton: floatingActionButton,
         bottomNavigationBar: bottomNavigationBar,
         bottomSheet: bottomSheet,

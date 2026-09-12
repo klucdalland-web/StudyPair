@@ -34,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
       await action();
       Get.offAllNamed(Routes.dashboard);
     } catch (e) {
-      Get.snackbar('Erreur', e.toString());
+      Get.snackbar('Erreurs', e.toString());
     } finally {
       if (mounted) {
         setState(() => _loading = false);

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get.dart';
+import 'package:study_pair/controller/demande_controller.dart';
 import 'package:study_pair/pages/dashboard/demandes/demandes_page.dart';
-import 'package:study_pair/pages/dashboard/match/widgets/correspondance.dart';
 
 class MesMatchsComplet extends StatefulWidget {
   const MesMatchsComplet({Key? key}) : super(key: key);
@@ -16,7 +15,7 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
     'Tous',
     '95%+ Affinité',
     'Informatique',
-    'Mathématiques'
+    'Mathématiques',
   ];
 
   int indexSelectionne = 0;
@@ -31,7 +30,8 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Repousse le bouton à droite
+            mainAxisAlignment:
+                MainAxisAlignment.spaceBetween, // Repousse le bouton à droite
             children: [
               // Partie Gauche : Titre + Badge
               Row(
@@ -46,7 +46,10 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.purple.shade50,
                       borderRadius: BorderRadius.circular(12),
@@ -62,23 +65,22 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
                   ),
                 ],
               ),
-              
+
               // Partie Droite : Le bouton "Demandes" manquant
               TextButton(
                 onPressed: () {
-   Navigator.push<void>(
-    context,
-    MaterialPageRoute<void>(
-      builder: (BuildContext context) => const DemandesPage(),
-    ),
-  );                  // Action lors du clic sur Demandes
+                  Get.to<void>(
+                    () => const DemandesPage(),
+                    binding: DemandesBinding(),
+                    preventDuplicates: true,
+                  );
                 },
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                 ),
                 child: Row(
-                  children: [
-                    const Text(
+                  children: const [
+                    Text(
                       'Demandes',
                       style: TextStyle(
                         fontSize: 14,
@@ -86,21 +88,8 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    // Petit point rouge de notification
-                    const Icon(
-        Icons.arrow_forward,
-        color: Colors.grey,
-        size: 18,
-      ),
-                    // Container(
-                    //   width: 6,
-                    //   height: 6,
-                    //   decoration: const BoxDecoration(
-                    //     color: Colors.red,
-                    //     shape: BoxShape.circle,
-                    //   ),
-                    // ),
+                    SizedBox(width: 4),
+                    Icon(Icons.arrow_forward, color: Colors.grey, size: 18),
                   ],
                 ),
               ),
@@ -124,13 +113,20 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
                   });
                 },
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 4.0,
+                    vertical: 2.0,
+                  ),
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   decoration: BoxDecoration(
-                    color: estSelectionne ? const Color(0xFF636AE8) : Colors.grey.shade100,
+                    color: estSelectionne
+                        ? const Color(0xFF636AE8)
+                        : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: estSelectionne ? Colors.transparent : Colors.grey.shade300,
+                      color: estSelectionne
+                          ? Colors.transparent
+                          : Colors.grey.shade300,
                     ),
                   ),
                   alignment: Alignment.center,
@@ -139,7 +135,9 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
                     style: TextStyle(
                       color: estSelectionne ? Colors.white : Colors.black87,
                       fontSize: 13,
-                      fontWeight: estSelectionne ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: estSelectionne
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -149,6 +147,7 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
         ),
 
         const SizedBox(height: 12),
+
         // Expanded(
         //   child: Container(
         //     child: SingleChildScrollView(
@@ -156,10 +155,8 @@ class _MesMatchsCompletState extends State<MesMatchsComplet> {
         //     ),
         //   )
         //   )
-        
 
         // 4. LISTE HORIZONTALE DES MATCHS
-     
       ],
     );
   }
