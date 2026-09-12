@@ -3,50 +3,63 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class MessageModel {
   const MessageModel({
     required this.id,
-    required this.chatId,
-    required this.senderId,
+    required this.conversationId,
     required this.content,
-     required this.sendAt,
-    required this.isRead,
+    required this.senderId,
+    required this.senderName,
+    this.senderPhotoUrl,
+    this.isReceived = false,
+    this.isRead = false,
+    this.createdAt,
   });
 
   final String id;
-  final String chatId;
-  final String senderId;
+  final String conversationId;
   final String content;
-   final DateTime sendAt;
+  final String senderId;
+  final String senderName; // dénormalisé depuis UserModel.displayName -> évite un fetch par message
+  final String? senderPhotoUrl; // dénormalisé depuis UserModel.photoUrl
+  final bool isReceived;
   final bool isRead;
+  final DateTime? createdAt;
 
-  factory MessageModel.fromDoc(
-    DocumentSnapshot<Map<String, dynamic>> doc, {
-    required String chatId,
-  }) {
+  factory MessageModel.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     return MessageModel(
       id: doc.id,
-      chatId: chatId,
-      senderId: data['senderId'] as String? ?? '',
+      conversationId: data['conversationId'] as String? ?? '',
       content: data['content'] as String? ?? '',
-      sendAt: (data['sendAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      senderId: data['senderId'] as String? ?? '',
+      senderName: data['senderName'] as String? ?? '',
+      senderPhotoUrl: data['senderPhotoUrl'] as String?,
+      isReceived: data['isReceived'] as bool? ?? false,
       isRead: data['isRead'] as bool? ?? false,
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
     );
   }
 
-  Map<String, dynamic> toMap() => {
-    'senderId': senderId,
-    'content': content,
-    'sendAt': FieldValue.serverTimestamp(),
-    'isRead': false,
-  };
-  //Convertion depuis le jSON
-  factory MessageModel.fromMap(Map<String, dynamic> map) {
-  return MessageModel(
-    id: map['id'],
-    chatId: map['chatId'],
-    senderId: map['senderId'],
-    content: map['content'],
-    sendAt: DateTime.now(),
-    isRead: false,
-  );
-}
+  Map<String, dynamic> toMap({bool isNew = false}) => {
+        'conversationId': conversationId,
+        'content': content,
+        'senderId': senderId,
+        'senderName': senderName,
+        'senderPhotoUrl': senderPhotoUrl,
+        'isReceived': isReceived,
+        'isRead': isRead,
+        if (isNew) 'createdAt': FieldValue.serverTimestamp(),
+      };
+
+  MessageModel copyWith({bool? isReceived, bool? isRead}) {
+    return MessageModel(
+      id: id,
+      conversationId: conversationId,
+      content: content,
+      senderId: senderId,
+      senderName: senderName,
+      senderPhotoUrl: senderPhotoUrl,
+      isReceived: isReceived ?? this.isReceived,
+      isRead: isRead ?? this.isRead,
+      createdAt: createdAt,
+    );
+  }
 }
