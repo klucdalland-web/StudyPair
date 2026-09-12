@@ -5,6 +5,18 @@ import 'package:get/get.dart';
 import '../models/user_model.dart';
 import 'auth_service.dart';
 
+class PartnersPage {
+  const PartnersPage({
+    required this.users,
+    required this.hasMore,
+    this.lastDoc,
+  });
+
+  final List<UserModel> users;
+  final DocumentSnapshot<Map<String, dynamic>>? lastDoc;
+  final bool hasMore;
+}
+
 class UserService extends GetxService {
   final _db = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
@@ -31,7 +43,24 @@ class UserService extends GetxService {
     String? university,
     String? level,
   }) async {
-    Query<Map<String, dynamic>> query = _db.collection('users');
+    final page = await searchPartnersPage(
+      subject: subject,
+      university: university,
+      level: level,
+      limit: 200,
+    );
+    return page.users;
+  }
+
+  Future<PartnersPage> searchPartnersPage({
+    String? subject,
+    String? university,
+    String? level,
+    int limit = 12,
+    DocumentSnapshot<Map<String, dynamic>>? startAfter,
+  }) async {
+    Query<Map<String, dynamic>> query = _db.collection('users').orderBy(FieldPath.documentId);
+
     if (university != null && university.isNotEmpty) {
       query = query.where('university', isEqualTo: university);
     }
@@ -41,8 +70,22 @@ class UserService extends GetxService {
     if (subject != null && subject.isNotEmpty) {
       query = query.where('subjects', arrayContains: subject);
     }
-    final snap = await query.limit(50).get();
+
+    if (startAfter != null) {
+      query = query.startAfterDocument(startAfter);
+    }
+
+    final snap = await query.limit(limit).get();
     final myId = _auth.currentUser?.uid;
-    return snap.docs.map(UserModel.fromDoc).where((u) => u.id != myId).toList();
+    final users = snap.docs
+        .map(UserModel.fromDoc)
+        .where((u) => u.id != myId)
+        .toList();
+
+    return PartnersPage(
+      users: users,
+      lastDoc: snap.docs.isEmpty ? startAfter : snap.docs.last,
+      hasMore: snap.docs.length >= limit,
+    );
   }
 }

@@ -13,6 +13,7 @@ class ProfileController extends GetxController {
 
   final Rxn<UserModel> user = Rxn<UserModel>();
   final RxBool isLoading = true.obs;
+  final RxBool isSaving = false.obs;
 
   @override
   void onInit() {
@@ -35,6 +36,46 @@ class ProfileController extends GetxController {
       }
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<bool> updateProfile({
+    String? displayName,
+    String? photoUrl,
+    String? bio,
+    String? university,
+    String? level,
+    List<String>? subjects,
+    bool? isOnline,
+    bool? isStudent,
+  }) async {
+    final current = user.value;
+    if (current == null) {
+      Get.snackbar('Erreur', 'Profil introuvable.');
+      return false;
+    }
+
+    isSaving.value = true;
+    try {
+      final updated = current.copyWith(
+        displayName: displayName,
+        photoUrl: photoUrl,
+        bio: bio,
+        university: university,
+        level: level,
+        subjects: subjects,
+        isOnline: isOnline,
+        isStudent: isStudent,
+      );
+      await _userService.updateMe(updated);
+      user.value = updated;
+      Get.snackbar('Profil', 'Modifications enregistrées.');
+      return true;
+    } catch (e) {
+      Get.snackbar('Erreur', 'Impossible de mettre à jour le profil.');
+      return false;
+    } finally {
+      isSaving.value = false;
     }
   }
 
