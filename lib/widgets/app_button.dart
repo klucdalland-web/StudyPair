@@ -11,32 +11,10 @@ enum AppButtonVariant { primary, secondary, ghost, danger }
 /// Bouton StudyPair avec plusieurs variantes :
 /// primary, secondary, ghost et danger.
 ///
-/// Supporte également un état de chargement.
-///
-/// Exemple :
-///
-/// AppButton(
-///   label: 'Se connecter',
-///   loading: _loading,
-///   onPressed: _submit,
-/// )
-///
-/// AppButton.secondary(
-///   label: 'Continuer avec Google',
-///   onPressed: _google,
-/// )
-///
-/// AppButton.ghost(
-///   label: 'Mot de passe oublié ?',
-///   onPressed: _reset,
-/// )
-///
-/// AppButton(
-///   label: 'Supprimer',
-///   variant: AppButtonVariant.danger,
-///   icon: Icons.delete_outline,
-///   onPressed: _delete,
-/// )
+/// Supporte également :
+/// - un état de chargement
+/// - une couleur de fond personnalisée
+/// - une couleur de texte personnalisée
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
@@ -48,6 +26,8 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.expanded = true,
     this.height = 48,
+    this.backgroundColor,
+    this.textColor,
   });
 
   const AppButton.secondary({
@@ -58,6 +38,8 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.expanded = true,
     this.height = 48,
+    this.backgroundColor,
+    this.textColor,
   }) : outlined = true,
        variant = AppButtonVariant.secondary;
 
@@ -69,6 +51,8 @@ class AppButton extends StatelessWidget {
     this.icon,
     this.expanded = false,
     this.height = 40,
+    this.backgroundColor,
+    this.textColor,
   }) : outlined = false,
        variant = AppButtonVariant.ghost;
 
@@ -81,6 +65,12 @@ class AppButton extends StatelessWidget {
   final bool expanded;
   final double height;
 
+  /// Couleur de fond personnalisée du bouton.
+  final Color? backgroundColor;
+
+  /// Couleur du texte et des icônes.
+  final Color? textColor;
+
   @override
   Widget build(BuildContext context) {
     final effectiveVariant = outlined && variant == AppButtonVariant.primary
@@ -89,23 +79,28 @@ class AppButton extends StatelessWidget {
 
     final handler = loading ? null : onPressed;
 
+    final defaultTextColor = switch (effectiveVariant) {
+      AppButtonVariant.primary => AppColors.textOnPrimary,
+      AppButtonVariant.secondary => AppColors.primary,
+      AppButtonVariant.ghost => AppColors.primary,
+      AppButtonVariant.danger => AppColors.textOnPrimary,
+    };
+
+    final effectiveTextColor = textColor ?? defaultTextColor;
+
+    final spinnerColor = effectiveTextColor;
+
     final Widget child = loading
-        ? ButtonSpinner(
-            color:
-                effectiveVariant == AppButtonVariant.primary ||
-                    effectiveVariant == AppButtonVariant.danger
-                ? AppColors.textOnPrimary
-                : AppColors.primary,
-          )
+        ? ButtonSpinner(color: spinnerColor)
         : Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 18),
+                Icon(icon, size: 18, color: effectiveTextColor),
                 const SizedBox(width: 8),
               ],
-              AppText(label),
+              AppText(label, color: effectiveTextColor),
             ],
           );
 
@@ -113,17 +108,21 @@ class AppButton extends StatelessWidget {
       AppButtonVariant.primary => ElevatedButton(
         onPressed: handler,
         style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          foregroundColor: effectiveTextColor,
           minimumSize: Size(expanded ? double.infinity : 0, height),
           padding: EdgeInsets.symmetric(horizontal: expanded ? 16 : 20),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadii.mdAll),
         ),
         child: child,
       ),
+
       AppButtonVariant.secondary => ElevatedButton(
         onPressed: handler,
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: AppColors.primarySoft,
-          foregroundColor: AppColors.primary,
+          backgroundColor: backgroundColor ?? AppColors.primarySoft,
+          foregroundColor: effectiveTextColor,
           disabledBackgroundColor: AppColors.surfaceAlt,
           disabledForegroundColor: AppColors.textTertiary,
           minimumSize: Size(expanded ? double.infinity : 0, height),
@@ -132,20 +131,24 @@ class AppButton extends StatelessWidget {
         ),
         child: child,
       ),
+
       AppButtonVariant.ghost => TextButton(
         onPressed: handler,
         style: TextButton.styleFrom(
+          backgroundColor: backgroundColor,
+          foregroundColor: effectiveTextColor,
           minimumSize: Size(expanded ? double.infinity : 0, height),
           padding: EdgeInsets.symmetric(horizontal: expanded ? 16 : 12),
         ),
         child: child,
       ),
+
       AppButtonVariant.danger => ElevatedButton(
         onPressed: handler,
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: AppColors.danger,
-          foregroundColor: AppColors.textOnPrimary,
+          backgroundColor: backgroundColor ?? AppColors.danger,
+          foregroundColor: effectiveTextColor,
           minimumSize: Size(expanded ? double.infinity : 0, height),
           padding: EdgeInsets.symmetric(horizontal: expanded ? 16 : 20),
           shape: const RoundedRectangleBorder(borderRadius: AppRadii.mdAll),

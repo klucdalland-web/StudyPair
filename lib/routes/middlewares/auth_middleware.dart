@@ -11,7 +11,8 @@ class AuthMiddleware extends GetMiddleware {
 
   @override
   RouteSettings? redirect(String? route) {
-    if (!Get.isRegistered<AuthService>() || !Get.find<AuthService>().isLoggedIn) {
+    if (!Get.isRegistered<AuthService>() ||
+        !Get.find<AuthService>().isLoggedIn) {
       return const RouteSettings(name: Routes.login);
     }
     return null;

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:study_pair/widgets/app_text.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_radii.dart';
@@ -70,7 +71,9 @@ class AppPopupCard extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: (iconColor ?? AppColors.primary).withValues(alpha: 0.12),
+                    color: (iconColor ?? AppColors.primary).withValues(
+                      alpha: 0.12,
+                    ),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -104,10 +107,7 @@ class AppPopupCard extends StatelessWidget {
                 ),
               ),
             ],
-            if (child != null) ...[
-              const VGap.lg(),
-              child!,
-            ],
+            if (child != null) ...[const VGap.lg(), child!],
             if (actions != null && actions!.isNotEmpty) ...[
               const VGap.xl(),
               ..._buildActions(actions!),
@@ -206,17 +206,17 @@ Future<bool?> showAppConfirmDialog({
     return showCupertinoDialog<bool>(
       context: context,
       builder: (ctx) => CupertinoAlertDialog(
-        title: Text(title),
-        content: Text(message),
+        title: AppText(title),
+        content: AppText(message),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(cancelLabel),
+            child: AppText(cancelLabel),
           ),
           CupertinoDialogAction(
             isDestructiveAction: isDestructive,
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(confirmLabel),
+            child: AppText(confirmLabel),
           ),
         ],
       ),
@@ -227,8 +227,11 @@ Future<bool?> showAppConfirmDialog({
     context: context,
     title: title,
     message: message,
-    icon: icon ??
-        (isDestructive ? Icons.warning_amber_rounded : Icons.help_outline_rounded),
+    icon:
+        icon ??
+        (isDestructive
+            ? Icons.warning_amber_rounded
+            : Icons.help_outline_rounded),
     iconColor: isDestructive ? AppColors.danger : AppColors.primary,
     actions: [
       AppButton.secondary(
@@ -237,7 +240,9 @@ Future<bool?> showAppConfirmDialog({
       ),
       AppButton(
         label: confirmLabel,
-        variant: isDestructive ? AppButtonVariant.danger : AppButtonVariant.primary,
+        variant: isDestructive
+            ? AppButtonVariant.danger
+            : AppButtonVariant.primary,
         onPressed: () => Navigator.of(context).pop(true),
       ),
     ],
@@ -289,7 +294,8 @@ class AppBottomSheet extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: padding ??
+          padding:
+              padding ??
               const EdgeInsets.fromLTRB(
                 AppSpacing.xl,
                 AppSpacing.md,

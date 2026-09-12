@@ -18,10 +18,10 @@ class UserService extends GetxService {
   }
 
   Future<void> updateMe(UserModel user) async {
-    await _db.collection('users').doc(user.id).set(
-      user.toMap(),
-      SetOptions(merge: true),
-    );
+    await _db
+        .collection('users')
+        .doc(user.id)
+        .set(user.toMap(), SetOptions(merge: true));
     await _auth.currentUser?.updateDisplayName(user.displayName);
     Get.find<AuthService>().user.value = user;
   }
@@ -43,9 +43,6 @@ class UserService extends GetxService {
     }
     final snap = await query.limit(50).get();
     final myId = _auth.currentUser?.uid;
-    return snap.docs
-        .map(UserModel.fromDoc)
-        .where((u) => u.id != myId)
-        .toList();
+    return snap.docs.map(UserModel.fromDoc).where((u) => u.id != myId).toList();
   }
 }
