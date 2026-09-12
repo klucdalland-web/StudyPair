@@ -28,11 +28,17 @@ class ProfileExpertise extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final skill in skills)
-              AppChip(
-                label: skill,
+            if (skills.isEmpty)
+              const AppChip(
+                label: 'Aucune expertise',
                 variant: AppChipVariant.outline,
-              ),
+              )
+            else
+              for (final skill in skills)
+                AppChip(
+                  label: skill,
+                  variant: AppChipVariant.outline,
+                ),
           ],
         ),
       ],
