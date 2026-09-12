@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:study_pair/pages/dashboard/dashboard_controller.dart';
 
 import '../../../../theme/app_colors.dart';
 
 class Search extends StatelessWidget {
   const Search({super.key});
+
+  void _openMatchs() {
+    Get.find<DashboardController>().changeTab(1);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,6 +18,8 @@ class Search extends StatelessWidget {
       child: Stack(
         children: [
           TextField(
+            readOnly: true,
+            onTap: _openMatchs,
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.fromLTRB(20, 18, 56, 18),
               filled: true,
@@ -36,16 +44,20 @@ class Search extends StatelessWidget {
             top: 0,
             bottom: 0,
             child: Center(
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
+              child: Material(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: _openMatchs,
                   borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.mic_outlined,
-                  color: AppColors.textOnPrimary,
+                  child: const SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Icon(
+                      Icons.mic_outlined,
+                      color: AppColors.textOnPrimary,
+                    ),
+                  ),
                 ),
               ),
             ),
