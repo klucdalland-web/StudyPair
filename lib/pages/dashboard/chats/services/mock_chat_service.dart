@@ -141,6 +141,8 @@ class MockChatService extends GetxService {
   }) async {
     final existingIndex = _chats.indexWhere(
       (chat) =>
+          !chat.isGroup &&
+          chat.participantIds.length == 2 &&
           chat.participantIds.contains(currentUserId) &&
           chat.participantIds.contains(otherUserId),
     );
@@ -150,6 +152,34 @@ class MockChatService extends GetxService {
       id: 'chat_${DateTime.now().millisecondsSinceEpoch}',
       participantIds: [currentUserId, otherUserId],
       isValidated: false,
+      isGroup: false,
+      createdAt: DateTime.now(),
+    );
+    _chats.insert(0, chat);
+    _chatController.add(List.unmodifiable(_chats));
+    return chat;
+  }
+
+  Future<ChatModel> createGroup({
+    required String currentUserId,
+    required List<String> memberIds,
+    required String title,
+  }) async {
+    final participants = <String>{
+      currentUserId,
+      ...memberIds.where((id) => id != currentUserId),
+    }.toList();
+
+    if (participants.length < 3) {
+      throw Exception('Un groupe nécessite au moins 2 autres membres.');
+    }
+
+    final chat = ChatModel(
+      id: 'group_${DateTime.now().millisecondsSinceEpoch}',
+      participantIds: participants,
+      isValidated: true,
+      isGroup: true,
+      title: title.trim().isEmpty ? 'Groupe StudyPair' : title.trim(),
       createdAt: DateTime.now(),
     );
     _chats.insert(0, chat);
