@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../services/auth_service.dart';
 import '../pages/dashboard/chats/services/chat_service.dart';
+import '../services/demande_service.dart';
 import '../services/match_service.dart';
 import '../services/user_service.dart';
 import '../pages/dashboard/chats/services/mock_chat_service.dart';
@@ -11,6 +12,7 @@ class InitialBinding extends Bindings {
   @override
   void dependencies() {
     _putIfAbsent(() => UserService());
+    _putIfAbsent(() => DemandeService());
     _putIfAbsent(() => MatchService());
     _putIfAbsent(() => ChatService());
     Get.put(MockChatService());
