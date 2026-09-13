@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:study_pair/controller/notification_controller.dart';
 import 'package:study_pair/widgets/app_text.dart';
 
 import '../../../../routes/app_routes.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../theme/app_colors.dart';
 import '../../../../widgets/app_avatar.dart';
+import '../../notifications/notifications_page.dart';
 
 class Header extends StatelessWidget {
   const Header({super.key});
@@ -32,24 +34,20 @@ class Header extends StatelessWidget {
                     'Bonjour $firstName',
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                     color: AppColors.textOnPrimary,
-                    // style: const TextStyle(
-                    //   color: AppColors.textOnPrimary,
-                    //   fontSize: 22,
-                    //   fontWeight: FontWeight.bold,
-                    // ),
+                    color: AppColors.textOnPrimary,
                   ),
                   const SizedBox(height: 4),
                   AppText(
                     'Que souhaitez-vous faire ?',
-                      color: AppColors.textOnPrimary.withValues(alpha: 0.9),
-                      fontSize: 16,
-                    
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.9),
+                    fontSize: 16,
                   ),
                 ],
               );
             }),
           ),
+          const SizedBox(width: 12),
+          const _NotificationButton(),
           const SizedBox(width: 12),
           Obx(() {
             final user = auth.user.value;
@@ -61,6 +59,68 @@ class Header extends StatelessWidget {
             );
           }),
         ],
+      ),
+    );
+  }
+}
+
+class _NotificationButton extends StatelessWidget {
+  const _NotificationButton();
+
+  static void _open() {
+    Get.to<void>(
+      () => const NotificationsPage(),
+      binding: NotificationsBinding(),
+      preventDuplicates: true,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Le badge ne s'affiche que si le controller est déjà enregistré
+    // (ex. binding global ou visite précédente de la page). Sinon on
+    // affiche juste la cloche, sans planter.
+    final hasController = Get.isRegistered<NotificationsController>();
+
+    return InkWell(
+      onTap: _open,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        height: 44,
+        width: 44,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.textOnPrimary.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Icon(
+              Icons.notifications_outlined,
+              color: AppColors.textOnPrimary,
+              size: 22,
+            ),
+            if (hasController)
+              Obx(() {
+                final count = Get.find<NotificationsController>().unreadCount;
+                if (count == 0) return const SizedBox.shrink();
+                return Positioned(
+                  top: -2,
+                  right: -2,
+                  child: Container(
+                    height: 10,
+                    width: 10,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF4D4F),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.primary, width: 1.5),
+                    ),
+                  ),
+                );
+              }),
+          ],
+        ),
       ),
     );
   }

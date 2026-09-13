@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:study_pair/controller/demande_controller.dart';
 import 'package:study_pair/pages/dashboard/dashboard_controller.dart';
 import 'package:study_pair/pages/dashboard/demandes/demandes_page.dart';
-import 'package:study_pair/pages/dashboard/notifications/notifications_page.dart';
 import 'package:study_pair/routes/app_routes.dart';
 import 'package:study_pair/widgets/app_text.dart';
 
@@ -33,12 +32,6 @@ class Categoriesection extends StatelessWidget {
           onTap: _openPlanning,
         ),
         (
-          icon: Icons.notifications_outlined,
-          color: Color(0xFF4391FF),
-          title: 'Notifications',
-          onTap: _openNotifications,
-        ),
-        (
           icon: Icons.more_horiz_rounded,
           color: Color(0xFF7182F2),
           title: 'Plus',
@@ -64,14 +57,6 @@ class Categoriesection extends StatelessWidget {
 
   static void _openProfile() {
     Get.toNamed(Routes.profile);
-  }
-
-  static void _openNotifications() {
-    Get.to<void>(
-      () => const NotificationsPage(),
-      binding: NotificationsBinding(),
-      preventDuplicates: true,
-    );
   }
 
   @override
