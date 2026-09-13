@@ -12,8 +12,7 @@ class AuthService extends GetxService {
   // serverClientId = client Web (type 3) — nécessaire pour obtenir l'idToken (surtout Android).
   final _google = GoogleSignIn(
     scopes: const ['email', 'profile'],
-    serverClientId:
-        '639858293131-3slpv6e2llg73bhe37ffpgjjhb1l0kqv.apps.googleusercontent.com',
+    serverClientId: '639858293131-3slpv6e2llg73bhe37ffpgjjhb1l0kqv.apps.googleusercontent.com',
   );
 
   AuthService to() => Get.find<AuthService>();
@@ -35,7 +34,9 @@ class AuthService extends GetxService {
         return;
       }
       if (kDebugMode) {
-        print('✅ Auth: session active → ${firebaseUser.email} (${firebaseUser.uid})');
+        print(
+          '✅ Auth: session active → ${firebaseUser.email} (${firebaseUser.uid})',
+        );
       }
       // Ne crée jamais de profil ici — login ≠ register.
       // Si le doc n’existe pas encore (ex. mid signUp Google), on ne touche pas.
@@ -122,7 +123,10 @@ class AuthService extends GetxService {
         isOnline: true,
         isStudent: isStudent,
       );
-      await _db.collection('users').doc(profile.id).set(profile.toMap(isNew: true));
+      await _db
+          .collection('users')
+          .doc(profile.id)
+          .set(profile.toMap(isNew: true));
       print('✅ Register OK + 📄 Firestore users/${profile.id}');
       user.value = profile;
     } catch (e) {
@@ -168,7 +172,10 @@ class AuthService extends GetxService {
         isOnline: true,
         isStudent: isStudent,
       );
-      await _db.collection('users').doc(profile.id).set(profile.toMap(isNew: true));
+      await _db
+          .collection('users')
+          .doc(profile.id)
+          .set(profile.toMap(isNew: true));
       print('✅ Google register OK + 📄 Firestore users/${profile.id}');
       user.value = profile;
     } catch (e) {

@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:study_pair/controller/chat_controller.dart';
+import 'package:study_pair/controller/conversation_controller.dart';
 import 'package:study_pair/controller/profile_controller.dart';
+import 'package:study_pair/pages/dashboard/conversations/chats_page.dart';
 
 import '../pages/auth/login/login_page.dart';
 import '../pages/auth/register/register_page.dart';
@@ -58,6 +60,13 @@ class AppPages {
       // middlewares: [AuthMiddleware()],
       transition: Transition.rightToLeft,
       binding: ChatBinding(),
+    ),
+    // Conversations
+    GetPage(
+      name: Routes.chats,
+      page: () => const ChatsPage(),
+      binding: ConversationsBinding(),
+      transition: Transition.fadeIn,
     ),
   ];
 }

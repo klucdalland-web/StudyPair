@@ -9,6 +9,7 @@ abstract class Routes {
   // --- Dashboard (après auth) ---
   static const dashboard = '/dashboard';
   static const profile = '/profile';
+  static const chats = '/conversations';
   static const chat = '/chat/:chatId';
 
   static String chatPath(String chatId) => '/chat/$chatId';

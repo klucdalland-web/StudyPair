@@ -34,7 +34,7 @@ class MeilleuresCorrespondancesSection extends StatelessWidget {
                 color: Colors.black87,
               ),
               const AppText(
-                'Tous les users',
+                'Tous les utilisateurs',
                 fontSize: 12,
                 color: Colors.grey,
                 fontWeight: FontWeight.w500,
@@ -194,10 +194,7 @@ class _ProfilMatchCardState extends State<ProfilMatchCard> {
                   padding: EdgeInsets.zero,
                 ),
                 const SizedBox(width: 4),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: Colors.grey.shade400,
-                ),
+                Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400),
               ],
             ),
           ),

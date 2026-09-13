@@ -52,7 +52,15 @@ class ChatPage extends GetView<ChatController> {
                     return const LoadingView(message: 'Chargement…');
                   }
 
-                  final messages = snapshot.data ?? [];
+                  // Tri : plus récent en premier
+                  final messages = [...(snapshot.data ?? [])]
+                    ..sort((a, b) {
+                      final da =
+                          a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+                      final db =
+                          b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+                      return db.compareTo(da);
+                    });
 
                   return Column(
                     children: [
@@ -66,6 +74,8 @@ class ChatPage extends GetView<ChatController> {
                                 ),
                               )
                             : ListView.builder(
+                                reverse:
+                                    true, // <- affiche les plus récents en bas
                                 padding: const EdgeInsets.fromLTRB(
                                   16,
                                   12,
@@ -91,8 +101,8 @@ class ChatPage extends GetView<ChatController> {
                         return MessageLimit(messageCount: messages.length);
                       }),
                       Obx(() {
-                        final enabled = controller.isValidated.value ||
-                            messages.length < 6;
+                        final enabled =
+                            controller.isValidated.value || messages.length < 6;
                         return ChatInputBar(
                           controller: controller.inputController,
                           onSend: controller.send,

@@ -3,12 +3,11 @@ import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
-import 'package:study_pair/models/chat_model.dart';
 import 'package:study_pair/models/demande_model.dart';
 import 'package:study_pair/models/friend_model.dart';
 import 'package:study_pair/models/notification_model.dart';
 import 'package:study_pair/models/user_model.dart';
-import 'package:study_pair/pages/dashboard/chats/services/chat_service.dart';
+import 'package:study_pair/services/conversation_service.dart';
 
 class DemandeService extends GetxService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -63,8 +62,9 @@ class DemandeService extends GetxService {
   Future<List<DemandeModel>> getDemandesRecues([String? userId]) async {
     final uid = userId ?? _uid;
     try {
-      final snapshot =
-          await _demandes.where('receiverId', isEqualTo: uid).get();
+      final snapshot = await _demandes
+          .where('receiverId', isEqualTo: uid)
+          .get();
       return _sorted(snapshot.docs.map(DemandeModel.fromDoc));
     } catch (e, st) {
       _log('getDemandesRecues', e, st);
@@ -75,8 +75,7 @@ class DemandeService extends GetxService {
   Future<List<DemandeModel>> getDemandesEnvoyees([String? userId]) async {
     final uid = userId ?? _uid;
     try {
-      final snapshot =
-          await _demandes.where('senderId', isEqualTo: uid).get();
+      final snapshot = await _demandes.where('senderId', isEqualTo: uid).get();
       return _sorted(snapshot.docs.map(DemandeModel.fromDoc));
     } catch (e, st) {
       _log('getDemandesEnvoyees', e, st);
@@ -107,9 +106,9 @@ class DemandeService extends GetxService {
       throw Exception('Cette demande n\'est plus en attente.');
     }
 
-    final chat = await Get.find<ChatService>().createChat(
-      participantIds: [demande.senderId, demande.receiverId],
-      isValidated: true,
+    final chat = await Get.find<ConversationService>().createChat(
+      currentUserId: demande.receiverId,
+      otherUserId: demande.senderId,
     );
 
     final friendRef = _db.collection('friends').doc();
@@ -125,15 +124,12 @@ class DemandeService extends GetxService {
       chatId: chat.id,
       friendId: friend.id,
     );
-    await _demandes.doc(demandeId).set(
-      {
-        'status': DemandeStatus.accepted,
-        'chatId': chat.id,
-        'friendId': friend.id,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await _demandes.doc(demandeId).set({
+      'status': DemandeStatus.accepted,
+      'chatId': chat.id,
+      'friendId': friend.id,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
 
     await _notifyUser(
       userId: demande.senderId,
@@ -153,13 +149,10 @@ class DemandeService extends GetxService {
     }
 
     final updated = demande.copyWith(status: DemandeStatus.declined);
-    await _demandes.doc(demandeId).set(
-      {
-        'status': DemandeStatus.declined,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await _demandes.doc(demandeId).set({
+      'status': DemandeStatus.declined,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
 
     await _notifyUser(
       userId: demande.senderId,
@@ -171,7 +164,9 @@ class DemandeService extends GetxService {
     return updated;
   }
 
-  Future<Map<String, UserModel>> loadUsersFor(List<DemandeModel> demandes) async {
+  Future<Map<String, UserModel>> loadUsersFor(
+    List<DemandeModel> demandes,
+  ) async {
     final ids = <String>{
       for (final d in demandes) ...[d.senderId, d.receiverId],
     };
@@ -194,7 +189,11 @@ class DemandeService extends GetxService {
     required String content,
   }) async {
     try {
-      final ref = _db.collection('users').doc(userId).collection('notifications').doc();
+      final ref = _db
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .doc();
       final notif = NotificationModel(
         id: ref.id,
         typeId: typeId,
