@@ -23,15 +23,39 @@ class ConversationsController extends GetxController {
 
   StreamSubscription<List<ConversationModel>>? _sub;
   StreamSubscription<User?>? _authSub;
+  final usersById = <String, UserModel>{}.obs;
+
+  StreamSubscription? _usersSub;
+  String _watchedIds = '';
+
+  void _syncUserWatchers() {
+    final ids = <String>{};
+    for (final c in conversations) {
+      for (final id in c.participants) {
+        if (id != currentUserId) ids.add(id);
+      }
+    }
+    final key = (ids.toList()..sort()).join(',');
+    if (key == _watchedIds) return;
+    _watchedIds = key;
+
+    _usersSub?.cancel();
+    if (ids.isEmpty) {
+      usersById.clear();
+      return;
+    }
+    _usersSub = _service.watchUsersByIds(ids.toList()).listen((map) {
+      usersById.assignAll(map);
+    });
+  }
 
   @override
   void onInit() {
     super.onInit();
 
-    // Re-lance le stream dès qu'un utilisateur est dispo
-    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
-      if (user != null) _listen();
-    });
+    _authSub = FirebaseAuth.instance.authStateChanges().listen(
+      (_) => _listen(),
+    );
 
     _listen();
   }
@@ -40,21 +64,23 @@ class ConversationsController extends GetxController {
   void onClose() {
     _sub?.cancel();
     _authSub?.cancel();
+    _usersSub?.cancel();
     super.onClose();
   }
 
   void _listen() {
     final uid = currentUserId;
 
-    // Pas encore d'utilisateur connecté, on vide la liste et on met en loading
+    _sub?.cancel();
+
     if (uid.isEmpty) {
       conversations.clear();
+      usersById.clear();
+      _watchedIds = '';
       isLoading.value = true;
       return;
     }
 
-    // Annule l'ancienne souscription avant d'en créer une nouvelle
-    _sub?.cancel();
     isLoading.value = true;
 
     _sub = _service
@@ -63,6 +89,7 @@ class ConversationsController extends GetxController {
           (list) {
             conversations.assignAll(list);
             isLoading.value = false;
+            _syncUserWatchers();
           },
           onError: (Object e, StackTrace st) {
             print('❌ watchConversations error: $e\n$st');
@@ -82,6 +109,8 @@ class ConversationsController extends GetxController {
       otherUserId: otherUserId,
     );
   }
+
+  Stream<List<UserModel>> listFriends() => _service.watchFriends(currentUserId);
 
   Future<ConversationModel> createGroup({
     required List<String> memberIds,

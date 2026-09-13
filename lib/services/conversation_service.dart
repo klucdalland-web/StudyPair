@@ -39,12 +39,82 @@ class ConversationService extends GetxService {
         .map((doc) => doc.exists ? ConversationModel.fromDoc(doc) : null);
   }
 
+  Future<ConversationModel?> getConversation(String chatId) async {
+    final doc = await _conversations.doc(chatId).get();
+    if (!doc.exists) return null;
+    return ConversationModel.fromDoc(doc);
+  }
+
   Future<List<UserModel>> availableContacts(String currentUserId) async {
     final snap = await _users.get();
     return snap.docs
         .where((d) => d.id != currentUserId)
         .map(UserModel.fromDoc)
         .toList();
+  }
+
+  Stream<Map<String, UserModel>> watchUsersByIds(List<String> uids) {
+    if (uids.isEmpty) return Stream.value(const {});
+
+    // Chunk de 10 (limite whereIn Firestore)
+    const chunk = 10;
+    final chunks = <List<String>>[];
+    for (var i = 0; i < uids.length; i += chunk) {
+      chunks.add(uids.sublist(i, (i + chunk).clamp(0, uids.length)));
+    }
+
+    final streams = chunks
+        .map(
+          (ids) => _users
+              .where(FieldPath.documentId, whereIn: ids)
+              .snapshots()
+              .map((s) => {for (final d in s.docs) d.id: UserModel.fromDoc(d)}),
+        )
+        .toList();
+
+    if (streams.length == 1) return streams.first;
+    return _merge(streams);
+  }
+
+// Merger les chunks
+  Stream<Map<String, UserModel>> _merge(
+    List<Stream<Map<String, UserModel>>> streams,
+  ) {
+    late StreamController<Map<String, UserModel>> controller;
+    final subscriptions = <StreamSubscription<Map<String, UserModel>>>[];
+    final latest = List<Map<String, UserModel>>.filled(
+      streams.length,
+      const <String, UserModel>{},
+    );
+
+    void emitMerged() {
+      final merged = <String, UserModel>{};
+      for (final part in latest) {
+        merged.addAll(part);
+      }
+      controller.add(merged);
+    }
+
+    controller = StreamController<Map<String, UserModel>>(
+      onListen: () {
+        for (var i = 0; i < streams.length; i++) {
+          subscriptions.add(
+            streams[i].listen((map) {
+              latest[i] = map;
+              emitMerged();
+            }, onError: controller.addError),
+          );
+        }
+      },
+      onCancel: () async {
+        for (final sub in subscriptions) {
+          await sub.cancel();
+        }
+        subscriptions.clear();
+      },
+    );
+
+    return controller.stream;
   }
 
   Future<ConversationModel> createChat({
@@ -168,6 +238,34 @@ class ConversationService extends GetxService {
         final ids = List<String>.from(d.data()['userIds'] as List);
         return ids.contains(uid2);
       });
+    });
+  }
+
+  Stream<List<String>> watchFriendIds(String uid) {
+    return _friends.where('userIds', arrayContains: uid).snapshots().map((
+      snap,
+    ) {
+      final ids = <String>{};
+      for (final doc in snap.docs) {
+        final list = List<String>.from(doc.data()['userIds'] as List);
+        ids.addAll(list.where((id) => id != uid));
+      }
+      return ids.toList();
+    });
+  }
+
+  Stream<List<UserModel>> watchFriends(String uid) {
+    return _friends.where('userIds', arrayContains: uid).snapshots().asyncMap((
+      snap,
+    ) async {
+      final ids = <String>{};
+      for (final doc in snap.docs) {
+        final list = List<String>.from(doc.data()['userIds'] as List);
+        ids.addAll(list.where((id) => id != uid));
+      }
+      if (ids.isEmpty) return <UserModel>[];
+      final users = await Future.wait(ids.map(getUser));
+      return users.whereType<UserModel>().toList();
     });
   }
 }

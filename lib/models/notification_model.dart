@@ -12,7 +12,7 @@ class NotificationModel {
 
   final String id;
   final String typeId;
-  final String typeLabel; // dénormalisé depuis NotificationTypeModel pour éviter un fetch séparé
+  final String typeLabel; 
   final String content;
   final bool isRead;
   final DateTime? createdAt;

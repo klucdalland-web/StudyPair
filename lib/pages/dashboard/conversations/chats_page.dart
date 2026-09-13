@@ -30,6 +30,49 @@ class _ChatsPageState extends State<ChatsPage> {
 
   String get _currentUserId => _ctrl.currentUserId;
 
+  Widget _avatarWithStatus(UserModel user) {
+    final initials = (user.displayName.trim().isNotEmpty)
+        ? user.displayName.trim()[0].toUpperCase()
+        : '?';
+
+    final avatar = (user.photoUrl != null && user.photoUrl!.isNotEmpty)
+        ? CircleAvatar(
+            radius: 22,
+            backgroundImage: NetworkImage(user.photoUrl!),
+          )
+        : CircleAvatar(
+            radius: 22,
+            backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+            child: Text(
+              initials,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
+          );
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        avatar,
+        Positioned(
+          right: 0,
+          bottom: 0,
+          child: Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: user.isOnline ? Colors.green : Colors.grey,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   void dispose() {
     _search.dispose();
@@ -56,16 +99,7 @@ class _ChatsPageState extends State<ChatsPage> {
   }
 
   Future<void> _createConversation() async {
-    final contacts = await _ctrl.availableContacts();
-    if (contacts.isEmpty) {
-      Get.snackbar('Info', 'Aucun contact disponible pour le moment.');
-      return;
-    }
-
-    final selected = await _pickConversationContact(
-      context: context,
-      contacts: contacts,
-    );
+    final selected = await _pickConversationContact(context: context);
     if (selected == null || !mounted) return;
 
     try {
@@ -76,39 +110,45 @@ class _ChatsPageState extends State<ChatsPage> {
     }
   }
 
-  Future<UserModel?> _pickConversationContact({
-    required BuildContext context,
-    required List<UserModel> contacts,
-  }) {
+  Future<UserModel?> _pickConversationContact({required BuildContext context}) {
     return showModalBottomSheet<UserModel>(
       context: context,
-      showDragHandle: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      builder: (context) => SafeArea(
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: contacts.length,
-          itemBuilder: (context, index) {
-            final contact = contacts[index];
-
-            return Material(
-              color: Colors.transparent,
-              child: ListTile(
-                leading: const CircleAvatar(
-                  child: Icon(Icons.person_outline_rounded),
+      builder: (_) {
+        return StreamBuilder<List<UserModel>>(
+          stream: _ctrl.listFriends(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final contacts = snapshot.data ?? [];
+            if (contacts.isEmpty) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Text('Aucun ami pour le moment.'),
                 ),
-                title: Text(contact.displayName),
-                subtitle: contact.email.isEmpty ? null : Text(contact.email),
-                onTap: () => Navigator.of(context).pop(contact),
-              ),
+              );
+            }
+            return ListView.builder(
+              itemCount: contacts.length,
+              itemBuilder: (context, i) {
+                final u = contacts[i];
+                return ListTile(
+                  leading: _avatarWithStatus(u),
+                  title: Text(u.displayName),
+                  subtitle: Text(
+                    u.isOnline ? 'En ligne' : 'Hors ligne',
+                    style: TextStyle(
+                      color: u.isOnline ? Colors.green : Colors.grey,
+                    ),
+                  ),
+                  onTap: () => Navigator.pop(context, u),
+                );
+              },
             );
           },
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -214,8 +254,6 @@ class _ChatsPageState extends State<ChatsPage> {
     return c.otherParticipantInfo(_currentUserId)?.displayName ?? 'Utilisateur';
   }
 
-  // Dans _ChatsPageState de chats_page.dart
-
   UserModel _tileUser(ConversationModel c) {
     final lastMessage = (c.lastMessage?.trim().isNotEmpty ?? false)
         ? c.lastMessage!.trim()
@@ -234,6 +272,19 @@ class _ChatsPageState extends State<ChatsPage> {
       (id) => id != _currentUserId,
       orElse: () => '',
     );
+
+    final live = _ctrl.usersById[otherId];
+    if (live != null) {
+      return UserModel(
+        id: live.id,
+        email: live.email,
+        displayName: live.displayName,
+        level: lastMessage,
+        photoUrl: live.photoUrl,
+        isOnline: live.isOnline,
+      );
+    }
+
     final info = c.participantsInfo[otherId];
     return UserModel(
       id: otherId,

@@ -32,10 +32,7 @@ class HomePage extends StatelessWidget {
                 physics: AppPlatform.scrollPhysics,
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Categoriesection(),
-                    RecentRequestsSection(),
-                  ],
+                  children: [Categoriesection(), RecentRequestsSection()],
                 ),
               ),
             ),
