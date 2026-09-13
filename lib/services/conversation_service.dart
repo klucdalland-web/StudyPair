@@ -39,6 +39,12 @@ class ConversationService extends GetxService {
         .map((doc) => doc.exists ? ConversationModel.fromDoc(doc) : null);
   }
 
+  Future<ConversationModel?> getConversation(String chatId) async {
+    final doc = await _conversations.doc(chatId).get();
+    if (!doc.exists) return null;
+    return ConversationModel.fromDoc(doc);
+  }
+
   Future<List<UserModel>> availableContacts(String currentUserId) async {
     final snap = await _users.get();
     return snap.docs
@@ -168,6 +174,34 @@ class ConversationService extends GetxService {
         final ids = List<String>.from(d.data()['userIds'] as List);
         return ids.contains(uid2);
       });
+    });
+  }
+
+  Stream<List<String>> watchFriendIds(String uid) {
+    return _friends.where('userIds', arrayContains: uid).snapshots().map((
+      snap,
+    ) {
+      final ids = <String>{};
+      for (final doc in snap.docs) {
+        final list = List<String>.from(doc.data()['userIds'] as List);
+        ids.addAll(list.where((id) => id != uid));
+      }
+      return ids.toList();
+    });
+  }
+
+  Stream<List<UserModel>> watchFriends(String uid) {
+    return _friends.where('userIds', arrayContains: uid).snapshots().asyncMap((
+      snap,
+    ) async {
+      final ids = <String>{};
+      for (final doc in snap.docs) {
+        final list = List<String>.from(doc.data()['userIds'] as List);
+        ids.addAll(list.where((id) => id != uid));
+      }
+      if (ids.isEmpty) return <UserModel>[];
+      final users = await Future.wait(ids.map(getUser));
+      return users.whereType<UserModel>().toList();
     });
   }
 }

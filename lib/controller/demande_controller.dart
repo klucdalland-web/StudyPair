@@ -3,17 +3,21 @@ import 'package:study_pair/models/demande_model.dart';
 import 'package:study_pair/models/user_model.dart';
 import 'package:study_pair/routes/app_routes.dart';
 import 'package:study_pair/services/auth_service.dart';
+import 'package:study_pair/services/conversation_service.dart';
 import 'package:study_pair/services/demande_service.dart';
 
 class DemandesController extends GetxController {
   DemandesController({
     DemandeService? demandeService,
     AuthService? authService,
-  })  : _demandes = demandeService ?? Get.find<DemandeService>(),
-        _auth = authService ?? Get.find<AuthService>();
+    ConversationService? conversationsService,
+  }) : _demandes = demandeService ?? Get.find<DemandeService>(),
+       _auth = authService ?? Get.find<AuthService>(),
+       _conversations = conversationsService ?? Get.find<ConversationService>();
 
   final DemandeService _demandes;
   final AuthService _auth;
+  final ConversationService _conversations;
 
   final RxBool isLoading = true.obs;
   final RxInt selectedTabIndex = 0.obs;
@@ -78,13 +82,27 @@ class DemandesController extends GetxController {
       final updated = await _demandes.accepter(id);
       final i = demandesRecues.indexWhere((d) => d.id == id);
       if (i != -1) demandesRecues[i] = updated;
+
+      if (updated.chatId == null) {
+        Get.snackbar(
+          'Demande acceptée',
+          'Conversation créée. Tu peux discuter avec ton binôme.',
+        );
+        return;
+      }
+
+      final chat = await _conversations.getConversation(updated.chatId!);
+      if (chat == null) {
+        Get.snackbar('Erreur', 'Conversation introuvable.');
+        return;
+      }
+
       Get.snackbar(
         'Demande acceptée',
         'Conversation créée. Tu peux discuter avec ton binôme.',
       );
-      if (updated.chatId != null) {
-        Get.toNamed(Routes.chatPath(updated.chatId!));
-      }
+
+      await Get.toNamed(Routes.chatPath(chat.id), arguments: chat);
     } catch (e) {
       Get.snackbar('Erreur', e.toString());
     }
@@ -109,6 +127,7 @@ class DemandesBinding extends Bindings {
       () => DemandesController(
         demandeService: Get.find<DemandeService>(),
         authService: Get.find<AuthService>(),
+        conversationsService: Get.find<ConversationService>(),
       ),
     );
   }

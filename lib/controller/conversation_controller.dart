@@ -83,6 +83,8 @@ class ConversationsController extends GetxController {
     );
   }
 
+  Stream<List<UserModel>> listFriends() => _service.watchFriends(currentUserId);
+
   Future<ConversationModel> createGroup({
     required List<String> memberIds,
     required String title,

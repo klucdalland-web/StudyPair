@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:study_pair/controller/demande_controller.dart';
 import 'package:study_pair/pages/dashboard/dashboard_controller.dart';
 import 'package:study_pair/pages/dashboard/demandes/demandes_page.dart';
+import 'package:study_pair/pages/dashboard/notifications/notifications_page.dart';
 import 'package:study_pair/routes/app_routes.dart';
 import 'package:study_pair/widgets/app_text.dart';
 
@@ -13,31 +14,37 @@ class Categoriesection extends StatelessWidget {
 
   static const _categories =
       <({IconData icon, Color color, String title, VoidCallback onTap})>[
-    (
-      icon: Icons.mail_outline_rounded,
-      color: Color(0xFF605CF4),
-      title: 'Demandes',
-      onTap: _openDemandes,
-    ),
-    (
-      icon: Icons.school_outlined,
-      color: Color(0xFFA11647),
-      title: 'Étudiant',
-      onTap: _openMatchs,
-    ),
-    (
-      icon: Icons.schedule_outlined,
-      color: Color(0xFF4391FF),
-      title: 'Créneaux',
-      onTap: _openPlanning,
-    ),
-    (
-      icon: Icons.more_horiz_rounded,
-      color: Color(0xFF7182F2),
-      title: 'Plus',
-      onTap: _openProfile,
-    ),
-  ];
+        (
+          icon: Icons.mail_outline_rounded,
+          color: Color(0xFF605CF4),
+          title: 'Demandes',
+          onTap: _openDemandes,
+        ),
+        (
+          icon: Icons.school_outlined,
+          color: Color(0xFFA11647),
+          title: 'Étudiant',
+          onTap: _openMatchs,
+        ),
+        (
+          icon: Icons.schedule_outlined,
+          color: Color(0xFF4391FF),
+          title: 'Créneaux',
+          onTap: _openPlanning,
+        ),
+        (
+          icon: Icons.notifications_outlined,
+          color: Color(0xFF4391FF),
+          title: 'Notifications',
+          onTap: _openNotifications,
+        ),
+        (
+          icon: Icons.more_horiz_rounded,
+          color: Color(0xFF7182F2),
+          title: 'Plus',
+          onTap: _openProfile,
+        ),
+      ];
 
   static void _openDemandes() {
     Get.to<void>(
@@ -57,6 +64,14 @@ class Categoriesection extends StatelessWidget {
 
   static void _openProfile() {
     Get.toNamed(Routes.profile);
+  }
+
+  static void _openNotifications() {
+    Get.to<void>(
+      () => const NotificationsPage(),
+      binding: NotificationsBinding(),
+      preventDuplicates: true,
+    );
   }
 
   @override
