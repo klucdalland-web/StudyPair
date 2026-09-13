@@ -39,20 +39,6 @@ class ConversationService extends GetxService {
         .map((doc) => doc.exists ? ConversationModel.fromDoc(doc) : null);
   }
 
-  Future<ConversationModel?> getConversation(String chatId) async {
-    final doc = await _conversations.doc(chatId).get();
-    if (!doc.exists) return null;
-    return ConversationModel.fromDoc(doc);
-  }
-
-  Future<List<UserModel>> availableContacts(String currentUserId) async {
-    final snap = await _users.get();
-    return snap.docs
-        .where((d) => d.id != currentUserId)
-        .map(UserModel.fromDoc)
-        .toList();
-  }
-
   Stream<Map<String, UserModel>> watchUsersByIds(List<String> uids) {
     if (uids.isEmpty) return Stream.value(const {});
 
@@ -76,7 +62,6 @@ class ConversationService extends GetxService {
     return _merge(streams);
   }
 
-// Merger les chunks
   Stream<Map<String, UserModel>> _merge(
     List<Stream<Map<String, UserModel>>> streams,
   ) {
@@ -115,6 +100,27 @@ class ConversationService extends GetxService {
     );
 
     return controller.stream;
+  }
+
+  Future<ConversationModel?> getConversation(String chatId) async {
+    final doc = await _conversations.doc(chatId).get();
+    if (!doc.exists) return null;
+    return ConversationModel.fromDoc(doc);
+  }
+
+  // Marquer comme lu en temps réel
+  Future<void> markAsRead(String conversationId, String userId) {
+    return _conversations.doc(conversationId).update({
+      'lastReadAt.$userId': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<List<UserModel>> availableContacts(String currentUserId) async {
+    final snap = await _users.get();
+    return snap.docs
+        .where((d) => d.id != currentUserId)
+        .map(UserModel.fromDoc)
+        .toList();
   }
 
   Future<ConversationModel> createChat({
