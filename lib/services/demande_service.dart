@@ -3,7 +3,6 @@ import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
-import 'package:study_pair/models/chat_model.dart';
 import 'package:study_pair/models/demande_model.dart';
 import 'package:study_pair/models/friend_model.dart';
 import 'package:study_pair/models/notification_model.dart';
@@ -16,6 +15,9 @@ class DemandeService extends GetxService {
 
   CollectionReference<Map<String, dynamic>> get _demandes =>
       _db.collection('demandes');
+
+  CollectionReference<Map<String, dynamic>> get _friends =>
+      _db.collection('friends');
 
   String get _uid {
     final uid = _auth.currentUser?.uid;
@@ -37,6 +39,14 @@ class DemandeService extends GetxService {
       throw Exception('Tu ne peux pas t\'envoyer une demande.');
     }
 
+    if (await _areFriends(senderId, receiverId)) {
+      throw Exception('Vous êtes déjà en binôme ensemble.');
+    }
+
+    if (await _hasPendingDemandeBetween(senderId, receiverId)) {
+      throw Exception('Une demande est déjà en attente entre vous.');
+    }
+
     final ref = _demandes.doc();
     final demande = DemandeModel(
       id: ref.id,
@@ -48,6 +58,10 @@ class DemandeService extends GetxService {
       slotLabel: slotLabel,
       location: location,
       mode: mode,
+      // createdAt réel sera le serverTimestamp posé par toMap(isNew: true).
+      // expiresAt est calculé côté client : une différence de quelques
+      // secondes avec l'horloge serveur est négligeable sur une fenêtre de 5 jours.
+      expiresAt: DateTime.now().add(kDemandeValidityDuration),
     );
 
     await ref.set(demande.toMap(isNew: true));
@@ -60,12 +74,49 @@ class DemandeService extends GetxService {
     return demande;
   }
 
+  /// Vrai si une demande "pending" et non expirée existe déjà entre les deux
+  /// utilisateurs, dans un sens ou dans l'autre.
+  Future<bool> _hasPendingDemandeBetween(String userA, String userB) async {
+    final asSender = await _demandes
+        .where('senderId', isEqualTo: userA)
+        .where('receiverId', isEqualTo: userB)
+        .where('status', isEqualTo: DemandeStatus.pending)
+        .limit(1)
+        .get();
+    if (_hasNonExpired(asSender.docs)) return true;
+
+    final asReceiver = await _demandes
+        .where('senderId', isEqualTo: userB)
+        .where('receiverId', isEqualTo: userA)
+        .where('status', isEqualTo: DemandeStatus.pending)
+        .limit(1)
+        .get();
+    return _hasNonExpired(asReceiver.docs);
+  }
+
+  bool _hasNonExpired(List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) {
+    if (docs.isEmpty) return false;
+    final demande = DemandeModel.fromDoc(docs.first);
+    return !demande.estExpiree;
+  }
+
+  /// Vrai si les deux utilisateurs ont déjà un FriendModel les liant.
+  Future<bool> _areFriends(String userA, String userB) async {
+    final snapshot =
+        await _friends.where('userIds', arrayContains: userA).get();
+    return snapshot.docs.any((doc) {
+      final userIds = List<String>.from(doc.data()['userIds'] as List? ?? const []);
+      return userIds.contains(userB);
+    });
+  }
+
   Future<List<DemandeModel>> getDemandesRecues([String? userId]) async {
     final uid = userId ?? _uid;
     try {
       final snapshot =
           await _demandes.where('receiverId', isEqualTo: uid).get();
-      return _sorted(snapshot.docs.map(DemandeModel.fromDoc));
+      final demandes = snapshot.docs.map(DemandeModel.fromDoc);
+      return _sorted(await _expireIfNeeded(demandes));
     } catch (e, st) {
       _log('getDemandesRecues', e, st);
       rethrow;
@@ -77,7 +128,8 @@ class DemandeService extends GetxService {
     try {
       final snapshot =
           await _demandes.where('senderId', isEqualTo: uid).get();
-      return _sorted(snapshot.docs.map(DemandeModel.fromDoc));
+      final demandes = snapshot.docs.map(DemandeModel.fromDoc);
+      return _sorted(await _expireIfNeeded(demandes));
     } catch (e, st) {
       _log('getDemandesEnvoyees', e, st);
       rethrow;
@@ -94,7 +146,36 @@ class DemandeService extends GetxService {
   Future<DemandeModel?> getById(String id) async {
     final doc = await _demandes.doc(id).get();
     if (!doc.exists) return null;
-    return DemandeModel.fromDoc(doc);
+    final demande = DemandeModel.fromDoc(doc);
+    final list = await _expireIfNeeded([demande]);
+    return list.first;
+  }
+
+  /// Vérifie chaque demande "pending" dont expiresAt est dépassée et
+  /// persiste le passage au statut "expired" en base. Retourne la liste
+  /// avec les statuts à jour.
+  Future<List<DemandeModel>> _expireIfNeeded(Iterable<DemandeModel> demandes) async {
+    final result = <DemandeModel>[];
+    for (final demande in demandes) {
+      if (demande.status == DemandeStatus.pending && demande.estExpiree) {
+        try {
+          await _demandes.doc(demande.id).set(
+            {
+              'status': DemandeStatus.expired,
+              'updatedAt': FieldValue.serverTimestamp(),
+            },
+            SetOptions(merge: true),
+          );
+          result.add(demande.copyWith(status: DemandeStatus.expired));
+        } catch (e, st) {
+          _log('_expireIfNeeded', e, st);
+          result.add(demande); // on garde la version non expirée en cas d'échec d'écriture
+        }
+      } else {
+        result.add(demande);
+      }
+    }
+    return result;
   }
 
   Future<DemandeModel> accepter(String demandeId) async {

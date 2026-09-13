@@ -20,7 +20,7 @@ class MatchService extends GetxService {
       receiverId: partnerId,
       subject: subject,
       message: message.trim().isEmpty
-          ? 'Salut ! Je voudrais travailler avec toi sur $subject.'
+          ? " Bonjour, je serais ravi(e) de vous ajouter à mon réseau professionnel"
           : message.trim(),
       helpType: helpType,
     );
