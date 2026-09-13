@@ -9,11 +9,15 @@ import '../models/user_model.dart';
 class AuthService extends GetxService {
   final _auth = FirebaseAuth.instance;
   final _db = FirebaseFirestore.instance;
-  // serverClientId = client Web (type 3) — nécessaire pour obtenir l'idToken (surtout Android).
+  // serverClientId = client Web (type 3) — nécessaire pour obtenir l'idToken
+  // sur Android. NON supporté sur Flutter Web (google_sign_in_web lève une
+  // assertion si ce paramètre est fourni) : on ne le passe donc que hors web,
+  // le meta tag google-signin-client_id dans index.html suffit sur web.
   final _google = GoogleSignIn(
     scopes: const ['email', 'profile'],
-    serverClientId:
-        '639858293131-3slpv6e2llg73bhe37ffpgjjhb1l0kqv.apps.googleusercontent.com',
+    serverClientId: kIsWeb
+        ? null
+        : '639858293131-3slpv6e2llg73bhe37ffpgjjhb1l0kqv.apps.googleusercontent.com',
   );
 
   AuthService to() => Get.find<AuthService>();
