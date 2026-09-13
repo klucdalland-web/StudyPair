@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:study_pair/pages/dashboard/conversations/chats_page.dart';
 
 import '../../widgets/app_scaffold.dart';
-import 'chats/chats_page.dart';
 import 'dashboard_controller.dart';
 import 'home/home_page.dart';
 import 'match/match_page.dart';
@@ -24,7 +24,7 @@ class DashboardPage extends GetView<DashboardController> {
   Widget build(BuildContext context) {
     return Obx(
       () => AppScaffold(
-        backgroundColor:  Color(0xFF5F67EA),
+        backgroundColor: Color(0xFF5F67EA),
         safeTop: false,
         safeBottom: false,
         body: IndexedStack(

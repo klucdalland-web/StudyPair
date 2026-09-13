@@ -22,10 +22,8 @@ Future<UserModel?> pickConversationContact({
       child: ListView.separated(
         shrinkWrap: true,
         itemCount: contacts.length,
-        separatorBuilder: (_, _) => const Divider(
-          height: 1,
-          color: AppColors.divider,
-        ),
+        separatorBuilder: (_, _) =>
+            const Divider(height: 1, color: AppColors.divider),
         itemBuilder: (_, i) {
           final user = contacts[i];
           return ListTile(
@@ -58,10 +56,7 @@ Future<UserModel?> pickConversationContact({
 }
 
 class GroupCreateResult {
-  const GroupCreateResult({
-    required this.members,
-    required this.title,
-  });
+  const GroupCreateResult({required this.members, required this.title});
 
   final List<UserModel> members;
   final String title;
@@ -112,12 +107,8 @@ class _GroupPickerSheetState extends State<_GroupPickerSheet> {
     final members = widget.contacts
         .where((u) => _selected.contains(u.id))
         .toList();
-    Navigator.of(context).pop(
-      GroupCreateResult(
-        members: members,
-        title: _title.text.trim(),
-      ),
-    );
+    Navigator.of(context)
+        .pop(GroupCreateResult(members: members, title: _title.text.trim()));
   }
 
   @override
@@ -151,10 +142,8 @@ class _GroupPickerSheetState extends State<_GroupPickerSheet> {
             child: ListView.separated(
               shrinkWrap: true,
               itemCount: widget.contacts.length,
-              separatorBuilder: (_, _) => const Divider(
-                height: 1,
-                color: AppColors.divider,
-              ),
+              separatorBuilder: (_, _) =>
+                  const Divider(height: 1, color: AppColors.divider),
               itemBuilder: (_, i) {
                 final user = widget.contacts[i];
                 final selected = _selected.contains(user.id);

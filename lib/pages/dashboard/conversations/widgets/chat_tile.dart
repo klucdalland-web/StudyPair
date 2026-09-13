@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:study_pair/models/chat_model.dart';
+import 'package:study_pair/models/conversation_model.dart';
 import 'package:study_pair/models/user_model.dart';
 import 'package:study_pair/theme/app_colors.dart';
 import 'package:study_pair/widgets/app_avatar.dart';
@@ -9,24 +9,26 @@ import 'package:study_pair/widgets/gap.dart';
 class ChatTile extends StatelessWidget {
   const ChatTile({
     super.key,
-    required this.chat,
+    required this.conversation,
     required this.user,
-    this.isGroup = false,
     this.onTap,
   });
 
-  final ChatModel chat;
+  final ConversationModel conversation;
   final UserModel user;
-  final bool isGroup;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final preview = chat.lastMessage?.trim().isNotEmpty == true
-        ? chat.lastMessage!
+    final isGroup = conversation.isGroup;
+
+    final preview = conversation.lastMessage?.trim().isNotEmpty == true
+        ? conversation.lastMessage!
         : (isGroup
-            ? '${chat.participantIds.length} membres'
-            : (user.level ?? 'Nouvelle conversation'));
+              ? '${conversation.participants.length} membres'
+              : ((user.level?.isNotEmpty ?? false)
+                    ? user.level!
+                    : 'Nouvelle conversation'));
 
     return Material(
       color: Colors.transparent,
@@ -41,7 +43,7 @@ class ChatTile extends StatelessWidget {
                 Container(
                   width: 52,
                   height: 52,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.primarySoft,
                     shape: BoxShape.circle,
                   ),
@@ -77,9 +79,9 @@ class ChatTile extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (chat.lastMessageAt != null)
+                        if (conversation.lastMessageAt != null)
                           AppText(
-                            _formatTime(chat.lastMessageAt!),
+                            _formatTime(conversation.lastMessageAt!),
                             fontSize: 12,
                             color: AppColors.textTertiary,
                           ),

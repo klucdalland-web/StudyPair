@@ -17,8 +17,8 @@ class MessageModel {
   final String conversationId;
   final String content;
   final String senderId;
-  final String senderName; // dénormalisé depuis UserModel.displayName -> évite un fetch par message
-  final String? senderPhotoUrl; // dénormalisé depuis UserModel.photoUrl
+  final String senderName;
+  final String? senderPhotoUrl;
   final bool isReceived;
   final bool isRead;
   final DateTime? createdAt;
@@ -39,15 +39,15 @@ class MessageModel {
   }
 
   Map<String, dynamic> toMap({bool isNew = false}) => {
-        'conversationId': conversationId,
-        'content': content,
-        'senderId': senderId,
-        'senderName': senderName,
-        'senderPhotoUrl': senderPhotoUrl,
-        'isReceived': isReceived,
-        'isRead': isRead,
-        if (isNew) 'createdAt': FieldValue.serverTimestamp(),
-      };
+    'conversationId': conversationId,
+    'content': content,
+    'senderId': senderId,
+    'senderName': senderName,
+    'senderPhotoUrl': senderPhotoUrl,
+    'isReceived': isReceived,
+    'isRead': isRead,
+    if (isNew) 'createdAt': FieldValue.serverTimestamp(),
+  };
 
   MessageModel copyWith({bool? isReceived, bool? isRead}) {
     return MessageModel(
