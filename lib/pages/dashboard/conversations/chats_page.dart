@@ -254,8 +254,6 @@ class _ChatsPageState extends State<ChatsPage> {
     return c.otherParticipantInfo(_currentUserId)?.displayName ?? 'Utilisateur';
   }
 
-  // Dans _ChatsPageState de chats_page.dart
-
   UserModel _tileUser(ConversationModel c) {
     final lastMessage = (c.lastMessage?.trim().isNotEmpty ?? false)
         ? c.lastMessage!.trim()
@@ -274,6 +272,19 @@ class _ChatsPageState extends State<ChatsPage> {
       (id) => id != _currentUserId,
       orElse: () => '',
     );
+
+    final live = _ctrl.usersById[otherId];
+    if (live != null) {
+      return UserModel(
+        id: live.id,
+        email: live.email,
+        displayName: live.displayName,
+        level: lastMessage,
+        photoUrl: live.photoUrl,
+        isOnline: live.isOnline,
+      );
+    }
+
     final info = c.participantsInfo[otherId];
     return UserModel(
       id: otherId,
