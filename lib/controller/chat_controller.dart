@@ -9,6 +9,21 @@ import 'package:study_pair/services/auth_service.dart';
 import 'package:study_pair/services/conversation_service.dart';
 import 'package:study_pair/services/demande_service.dart';
 
+enum MessageStatus { sent, delivered, read }
+
+extension MessageStatusX on MessageStatus {
+  IconData get icon => switch (this) {
+    MessageStatus.sent => Icons.check_rounded,
+    MessageStatus.delivered => Icons.done_all_rounded,
+    MessageStatus.read => Icons.done_all_rounded,
+  };
+  Color get color => switch (this) {
+    MessageStatus.sent => Colors.grey,
+    MessageStatus.delivered => Colors.grey.shade600,
+    MessageStatus.read => Colors.blue,
+  };
+}
+
 class ChatController extends GetxController {
   ChatController({ConversationService? service})
     : _service = service ?? Get.find<ConversationService>();
@@ -27,7 +42,7 @@ class ChatController extends GetxController {
   final RxBool isValidated = false.obs;
 
   final TextEditingController inputController = TextEditingController();
-
+  bool get isGroup => chat.value?.isGroup ?? false;
   StreamSubscription<ConversationModel?>? _chatSub;
   StreamSubscription<bool>? _friendshipSub;
 
@@ -37,6 +52,9 @@ class ChatController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _chatSub = _service.watchConversation(chatId).listen((c) {
+      chat.value = c;
+    });
 
     final args = Get.arguments;
 
@@ -80,6 +98,42 @@ class ChatController extends GetxController {
         _watchFriendship(otherId);
       }
     }, onError: (_) => error.value = 'Erreur de chargement.');
+  }
+
+  Stream<List<MessageModel>> get messagesStream =>
+      _service.watchMessages(chatId).map((list) {
+        if (list.isNotEmpty && list.first.createdAt != _lastSeen) {
+          _lastSeen = list.first.createdAt;
+          _service.markAsRead(chatId, currentUserId);
+        }
+        return list;
+      });
+
+  DateTime? _lastSeen;
+
+  /// Renvoie le statut d'un message que J'AI envoyé.
+  MessageStatus statusFor(MessageModel m) {
+    final c = chat.value;
+    if (c == null || m.createdAt == null) return MessageStatus.sent;
+
+    final others = c.participants.where((id) => id != currentUserId).toList();
+    if (others.isEmpty) return MessageStatus.sent;
+
+    final allRead = others.every((uid) {
+      final t = c.lastReadAt?[uid];
+      return t != null && !t.isBefore(m.createdAt!);
+    });
+    return allRead ? MessageStatus.read : MessageStatus.sent;
+  }
+
+  int readCountFor(MessageModel m) {
+    final c = chat.value;
+    if (c == null || m.createdAt == null) return 0;
+    return c.participants.where((id) {
+      if (id == currentUserId) return false;
+      final t = c.lastReadAt?[id];
+      return t != null && !t.isBefore(m.createdAt!);
+    }).length;
   }
 
   Future<void> _loadMe() async {

@@ -86,10 +86,22 @@ class ChatPage extends GetView<ChatController> {
                                 itemCount: messages.length,
                                 itemBuilder: (_, i) {
                                   final m = messages[i];
+                                  final mine = controller.isMine(m);
                                   return MessageBubble(
                                     content: m.content,
-                                    mine: controller.isMine(m),
+                                    mine: mine,
                                     sendAt: m.createdAt ?? DateTime.now(),
+                                    status: mine
+                                        ? controller.statusFor(m)
+                                        : null,
+                                    showSenderName: controller.isGroup && !mine,
+                                    senderName: m.senderName,
+                                    readCount: mine && controller.isGroup
+                                        ? controller.readCountFor(m)
+                                        : null,
+                                    totalOthers: mine && controller.isGroup
+                                        ? chat.participants.length - 1
+                                        : null,
                                   );
                                 },
                               ),

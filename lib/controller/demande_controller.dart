@@ -8,11 +8,9 @@ import 'package:study_pair/services/auth_service.dart';
 import 'package:study_pair/services/demande_service.dart';
 
 class DemandesController extends GetxController {
-  DemandesController({
-    DemandeService? demandeService,
-    AuthService? authService,
-  })  : _demandes = demandeService ?? Get.find<DemandeService>(),
-        _auth = authService ?? Get.find<AuthService>();
+  DemandesController({DemandeService? demandeService, AuthService? authService})
+    : _demandes = demandeService ?? Get.find<DemandeService>(),
+      _auth = authService ?? Get.find<AuthService>();
 
   final DemandeService _demandes;
   final AuthService _auth;
@@ -70,27 +68,37 @@ class DemandesController extends GetxController {
 
     isLoading.value = true;
 
-    _recuesSub = _demandes.streamDemandesRecues(uid).listen(
-      (list) async {
-        demandesRecues.assignAll(list);
-        await _rafraichirUsers();
-        isLoading.value = false;
-      },
-      onError: (_) {
-        Get.snackbar('Erreur', 'Impossible de charger les demandes reçues.');
-        isLoading.value = false;
-      },
-    );
+    _recuesSub = _demandes
+        .streamDemandesRecues(uid)
+        .listen(
+          (list) async {
+            demandesRecues.assignAll(list);
+            await _rafraichirUsers();
+            isLoading.value = false;
+          },
+          onError: (_) {
+            Get.snackbar(
+              'Erreur',
+              'Impossible de charger les demandes reçues.',
+            );
+            isLoading.value = false;
+          },
+        );
 
-    _envoyeesSub = _demandes.streamDemandesEnvoyees(uid).listen(
-      (list) async {
-        demandesEnvoyees.assignAll(list);
-        await _rafraichirUsers();
-      },
-      onError: (_) {
-        Get.snackbar('Erreur', 'Impossible de charger les demandes envoyées.');
-      },
-    );
+    _envoyeesSub = _demandes
+        .streamDemandesEnvoyees(uid)
+        .listen(
+          (list) async {
+            demandesEnvoyees.assignAll(list);
+            await _rafraichirUsers();
+          },
+          onError: (_) {
+            Get.snackbar(
+              'Erreur',
+              'Impossible de charger les demandes envoyées.',
+            );
+          },
+        );
   }
 
   Future<void> _rafraichirUsers() async {
