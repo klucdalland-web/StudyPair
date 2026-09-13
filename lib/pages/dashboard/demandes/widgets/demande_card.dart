@@ -10,6 +10,7 @@ class DemandeCard extends StatelessWidget {
   const DemandeCard({
     super.key,
     required this.demande,
+    required this.currentUserId,
     this.nomUtilisateur,
     this.sousTitreUtilisateur,
     this.avatarUrl,
@@ -18,6 +19,7 @@ class DemandeCard extends StatelessWidget {
   });
 
   final DemandeModel demande;
+  final String currentUserId;
 
   /// Informations provenant du profil de l'utilisateur.
   final String? nomUtilisateur;
@@ -29,9 +31,10 @@ class DemandeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final estEnvoyee = demande.estEnvoyeePar(demande.senderId);
+    final estEnvoyee = demande.estEnvoyeePar(currentUserId);
 
     return Container(
+      // ... reste inchangé
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
