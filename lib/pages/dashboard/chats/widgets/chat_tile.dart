@@ -11,18 +11,22 @@ class ChatTile extends StatelessWidget {
     super.key,
     required this.chat,
     required this.user,
+    this.isGroup = false,
     this.onTap,
   });
 
   final ChatModel chat;
   final UserModel user;
+  final bool isGroup;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final preview = chat.lastMessage?.trim().isNotEmpty == true
         ? chat.lastMessage!
-        : (user.level ?? 'Nouvelle conversation');
+        : (isGroup
+            ? '${chat.participantIds.length} membres'
+            : (user.level ?? 'Nouvelle conversation'));
 
     return Material(
       color: Colors.transparent,
@@ -33,12 +37,27 @@ class ChatTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
           child: Row(
             children: [
-              AppAvatar(
-                imageUrl: user.photoUrl,
-                name: user.displayName,
-                size: 52,
-                online: user.isOnline,
-              ),
+              if (isGroup)
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySoft,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.groups_rounded,
+                    color: AppColors.primary,
+                    size: 26,
+                  ),
+                )
+              else
+                AppAvatar(
+                  imageUrl: user.photoUrl,
+                  name: user.displayName,
+                  size: 52,
+                  online: user.isOnline,
+                ),
               const HGap.md(),
               Expanded(
                 child: Column(
@@ -49,7 +68,7 @@ class ChatTile extends StatelessWidget {
                         Expanded(
                           child: AppText(
                             user.displayName.isEmpty
-                                ? 'Utilisateur'
+                                ? (isGroup ? 'Groupe' : 'Utilisateur')
                                 : user.displayName,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

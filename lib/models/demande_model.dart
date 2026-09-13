@@ -46,6 +46,8 @@ class DemandeModel {
     required this.location,
     this.mode = DemandeMode.presentiel,
     this.status = DemandeStatus.pending,
+    this.chatId,
+    this.friendId,
     this.createdAt,
   });
 
@@ -59,16 +61,17 @@ class DemandeModel {
   final String location;
   final DemandeMode mode;
   final String status;
+  /// Conversation créée à l'acceptation ([ChatModel]).
+  final String? chatId;
+  /// Lien d'amitié créé à l'acceptation ([FriendModel]).
+  final String? friendId;
   final DateTime? createdAt;
 
   bool get estEnAttente => status == DemandeStatus.pending;
   bool get estAcceptee => status == DemandeStatus.accepted;
   bool get estDeclinee => status == DemandeStatus.declined;
 
-  /// true si [userId] est le destinataire de la demande (onglet "Reçues").
   bool estRecuePar(String userId) => receiverId == userId;
-
-  /// true si [userId] est l'auteur de la demande (onglet "Envoyées").
   bool estEnvoyeePar(String userId) => senderId == userId;
 
   String get tempsEcouleLabel {
@@ -95,11 +98,13 @@ class DemandeModel {
       location: data['location'] as String? ?? '',
       mode: DemandeMode.fromValue(data['mode'] as String?),
       status: data['status'] as String? ?? DemandeStatus.pending,
+      chatId: data['chatId'] as String?,
+      friendId: data['friendId'] as String?,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
     );
   }
 
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> toMap({bool isNew = false}) => {
     'senderId': senderId,
     'receiverId': receiverId,
     'participantIds': [senderId, receiverId],
@@ -110,7 +115,10 @@ class DemandeModel {
     'location': location,
     'mode': mode.name,
     'status': status,
-    'createdAt': FieldValue.serverTimestamp(),
+    'chatId': chatId,
+    'friendId': friendId,
+    'updatedAt': FieldValue.serverTimestamp(),
+    if (isNew) 'createdAt': FieldValue.serverTimestamp(),
   };
 
   DemandeModel copyWith({
@@ -118,6 +126,9 @@ class DemandeModel {
     String? slotLabel,
     String? location,
     DemandeMode? mode,
+    String? message,
+    String? chatId,
+    String? friendId,
   }) {
     return DemandeModel(
       id: id,
@@ -125,11 +136,13 @@ class DemandeModel {
       receiverId: receiverId,
       subject: subject,
       helpType: helpType,
-      message: message,
+      message: message ?? this.message,
       slotLabel: slotLabel ?? this.slotLabel,
       location: location ?? this.location,
       mode: mode ?? this.mode,
       status: status ?? this.status,
+      chatId: chatId ?? this.chatId,
+      friendId: friendId ?? this.friendId,
       createdAt: createdAt,
     );
   }

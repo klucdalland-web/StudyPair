@@ -67,16 +67,21 @@ class ChatService extends GetxService {
     });
   }
 
-  Future<void> createChat({
+  Future<ChatModel> createChat({
     required List<String> participantIds,
     bool isValidated = false,
+    bool isGroup = false,
+    String? title,
   }) async {
     final ref = _db.collection('chats').doc();
     final chat = ChatModel(
       id: ref.id,
       participantIds: participantIds,
       isValidated: isValidated,
+      isGroup: isGroup || participantIds.length > 2,
+      title: title,
     );
     await ref.set(chat.toMap(isNew: true));
+    return chat;
   }
 }

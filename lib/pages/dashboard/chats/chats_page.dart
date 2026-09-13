@@ -4,16 +4,15 @@ import 'package:study_pair/models/chat_model.dart';
 import 'package:study_pair/models/user_model.dart';
 import 'package:study_pair/pages/dashboard/chats/services/mock_chat_service.dart';
 import 'package:study_pair/pages/dashboard/chats/widgets/chat_tile.dart';
+import 'package:study_pair/pages/dashboard/chats/widgets/create_chat_sheet.dart';
 import 'package:study_pair/routes/app_routes.dart';
 import 'package:study_pair/services/auth_service.dart';
 import 'package:study_pair/theme/app_colors.dart';
-import 'package:study_pair/widgets/app_avatar.dart';
 import 'package:study_pair/widgets/app_button.dart';
 import 'package:study_pair/widgets/app_header.dart';
 import 'package:study_pair/widgets/app_platform.dart';
 import 'package:study_pair/widgets/app_popup.dart';
 import 'package:study_pair/widgets/app_scaffold.dart';
-import 'package:study_pair/widgets/app_text.dart';
 import 'package:study_pair/widgets/app_text_field.dart';
 import 'package:study_pair/widgets/empty_view.dart';
 import 'package:study_pair/widgets/gap.dart';
@@ -33,13 +32,31 @@ class _ChatsPageState extends State<ChatsPage> {
   MockChatService get _chats => Get.find<MockChatService>();
   AuthService get _auth => Get.find<AuthService>();
 
-  /// Mock actuel : les conversations tournent autour de `user1`.
   String get _currentUserId => _auth.uid ?? 'user1';
 
   @override
   void dispose() {
     _search.dispose();
     super.dispose();
+  }
+
+  Future<void> _onCreatePressed() async {
+    await showAppActionSheet(
+      context: context,
+      title: 'Que veux-tu créer ?',
+      actions: [
+        AppSheetAction(
+          label: 'Conversation',
+          icon: Icons.chat_bubble_outline_rounded,
+          onTap: () => _createConversation(),
+        ),
+        AppSheetAction(
+          label: 'Groupe',
+          icon: Icons.groups_rounded,
+          onTap: () => _createGroup(),
+        ),
+      ],
+    );
   }
 
   Future<void> _createConversation() async {
@@ -49,50 +66,10 @@ class _ChatsPageState extends State<ChatsPage> {
       return;
     }
 
-    final selected = await showAppBottomSheet<UserModel>(
+    final selected = await pickConversationContact(
       context: context,
-      title: 'Nouvelle conversation',
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.45,
-        ),
-        child: ListView.separated(
-          shrinkWrap: true,
-          itemCount: contacts.length,
-          separatorBuilder: (_, _) => const Divider(
-            height: 1,
-            color: AppColors.divider,
-          ),
-          itemBuilder: (_, i) {
-            final user = contacts[i];
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: AppAvatar(
-                imageUrl: user.photoUrl,
-                name: user.displayName,
-                size: 44,
-                online: user.isOnline,
-              ),
-              title: AppText(
-                user.displayName,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-              subtitle: AppText(
-                user.level ?? user.email,
-                fontSize: 12,
-                color: AppColors.textSecondary,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              onTap: () => Navigator.of(context).pop(user),
-            );
-          },
-        ),
-      ),
+      contacts: contacts,
     );
-
     if (selected == null || !mounted) return;
 
     final chat = await _chats.createChat(
@@ -101,6 +78,63 @@ class _ChatsPageState extends State<ChatsPage> {
     );
 
     await Get.toNamed(Routes.chatPath(chat.id), arguments: chat);
+  }
+
+  Future<void> _createGroup() async {
+    final contacts = _chats.availableContacts(_currentUserId);
+    if (contacts.length < 2) {
+      Get.snackbar(
+        'Info',
+        'Il faut au moins 2 contacts pour créer un groupe.',
+      );
+      return;
+    }
+
+    final result = await pickGroupMembers(
+      context: context,
+      contacts: contacts,
+    );
+    if (result == null || !mounted) return;
+
+    try {
+      final chat = await _chats.createGroup(
+        currentUserId: _currentUserId,
+        memberIds: result.members.map((u) => u.id).toList(),
+        title: result.title,
+      );
+      await Get.toNamed(Routes.chatPath(chat.id), arguments: chat);
+    } catch (e) {
+      Get.snackbar('Erreur', e.toString());
+    }
+  }
+
+  String _chatTitle(ChatModel chat) {
+    if (chat.isGroup) {
+      return chat.title?.trim().isNotEmpty == true
+          ? chat.title!
+          : 'Groupe (${chat.participantIds.length})';
+    }
+    final otherId = chat.participantIds.firstWhere(
+      (id) => id != _currentUserId,
+      orElse: () => '',
+    );
+    return _chats.getUserById(otherId).displayName;
+  }
+
+  UserModel _tileUser(ChatModel chat) {
+    if (chat.isGroup) {
+      return UserModel(
+        id: chat.id,
+        email: '',
+        displayName: _chatTitle(chat),
+        level: '${chat.participantIds.length} membres',
+      );
+    }
+    final otherId = chat.participantIds.firstWhere(
+      (id) => id != _currentUserId,
+      orElse: () => '',
+    );
+    return _chats.getUserById(otherId);
   }
 
   @override
@@ -126,9 +160,9 @@ class _ChatsPageState extends State<ChatsPage> {
                   ),
                   const VGap.md(),
                   AppButton(
-                    label: 'Créer une conversation',
+                    label: 'Nouvelle discussion',
                     icon: Icons.add_comment_rounded,
-                    onPressed: _createConversation,
+                    onPressed: _onCreatePressed,
                   ),
                 ],
               ),
@@ -147,64 +181,85 @@ class _ChatsPageState extends State<ChatsPage> {
 
               final list = (snapshot.data ?? []).where((chat) {
                 if (_query.isEmpty) return true;
-                final otherId = chat.participantIds.firstWhere(
-                  (id) => id != _currentUserId,
-                  orElse: () => '',
-                );
-                final user = _chats.getUserById(otherId);
                 final haystack = [
-                  user.displayName,
-                  user.level ?? '',
+                  _chatTitle(chat),
                   chat.lastMessage ?? '',
                 ].join(' ').toLowerCase();
                 return haystack.contains(_query);
               }).toList();
 
               if (list.isEmpty) {
-                return SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: EmptyView(
-                    message:
-                        'Aucune conversation.\nDémarrez un échange avec un binôme ou un tuteur.',
-                    icon: Icons.chat_bubble_outline_rounded,
-                    actionLabel: 'Créer une conversation',
-                    onAction: _createConversation,
-                  ),
+                return SoftEmpty(
+                  onCreate: _onCreatePressed,
                 );
               }
 
-              return SliverPadding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 32),
-                sliver: SliverList.separated(
-                  itemCount: list.length,
-                  separatorBuilder: (_, _) => const Divider(
-                    height: 1,
-                    indent: 76,
-                    endIndent: 12,
-                    color: AppColors.divider,
-                  ),
-                  itemBuilder: (_, i) {
-                    final chat = list[i];
-                    final otherId = chat.participantIds.firstWhere(
-                      (id) => id != _currentUserId,
-                      orElse: () => '',
-                    );
-                    final otherUser = _chats.getUserById(otherId);
-
-                    return ChatTile(
-                      chat: chat,
-                      user: otherUser,
-                      onTap: () => Get.toNamed(
-                        Routes.chatPath(chat.id),
-                        arguments: chat,
-                      ),
-                    );
-                  },
-                ),
+              return SoftList(
+                chats: list,
+                tileUser: _tileUser,
               );
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class SoftEmpty extends StatelessWidget {
+  const SoftEmpty({super.key, required this.onCreate});
+
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: EmptyView(
+        message:
+            'Aucune conversation.\nCrée un échange privé ou un groupe.',
+        icon: Icons.chat_bubble_outline_rounded,
+        actionLabel: 'Nouvelle discussion',
+        onAction: onCreate,
+      ),
+    );
+  }
+}
+
+class SoftList extends StatelessWidget {
+  const SoftList({
+    super.key,
+    required this.chats,
+    required this.tileUser,
+  });
+
+  final List<ChatModel> chats;
+  final UserModel Function(ChatModel chat) tileUser;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 32),
+      sliver: SliverList.separated(
+        itemCount: chats.length,
+        separatorBuilder: (_, _) => const Divider(
+          height: 1,
+          indent: 76,
+          endIndent: 12,
+          color: AppColors.divider,
+        ),
+        itemBuilder: (_, i) {
+          final chat = chats[i];
+          return ChatTile(
+            chat: chat,
+            user: tileUser(chat),
+            isGroup: chat.isGroup,
+            onTap: () => Get.toNamed(
+              Routes.chatPath(chat.id),
+              arguments: chat,
+            ),
+          );
+        },
       ),
     );
   }
