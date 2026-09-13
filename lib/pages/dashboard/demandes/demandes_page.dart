@@ -80,18 +80,18 @@ class DemandesPage extends GetView<DemandesController> {
               user?.level,
             ].where((e) => e != null && e.toString().isNotEmpty).join(' · ');
 
-            return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: DemandeCard(
-                  demande: demande,
-                  currentUserId: controller.currentUserId ?? '',
-                  nomUtilisateur: user?.displayName,
-                  sousTitreUtilisateur: sousTitre.isEmpty ? null : sousTitre,
-                  avatarUrl: user?.photoUrl,
-                  onAccepter: () => controller.accepterDemande(demande.id),
-                  onDecliner: () => controller.declinerDemande(demande.id),
-                ),
-              );
+                        return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: DemandeCard(
+                demande: demande,
+                currentUserId: controller.currentUserId ?? '',
+                nomUtilisateur: user?.displayName,
+                sousTitreUtilisateur: sousTitre.isEmpty ? null : sousTitre,
+                avatarUrl: user?.photoUrl,
+                onAccepter: () => controller.accepterDemande(demande.id),
+                onDecliner: () => controller.declinerDemande(demande.id),
+              ),
+            );
           }),
         const VGap.sm(),
         const DemandesFooterNote(),

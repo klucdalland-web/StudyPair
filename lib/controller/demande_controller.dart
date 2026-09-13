@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:study_pair/models/demande_model.dart';
 import 'package:study_pair/models/user_model.dart';
@@ -20,6 +22,9 @@ class DemandesController extends GetxController {
   final RxList<DemandeModel> demandesRecues = <DemandeModel>[].obs;
   final RxList<DemandeModel> demandesEnvoyees = <DemandeModel>[].obs;
   final RxMap<String, UserModel> usersById = <String, UserModel>{}.obs;
+
+  StreamSubscription<List<DemandeModel>>? _recuesSub;
+  StreamSubscription<List<DemandeModel>>? _envoyeesSub;
 
   String? get currentUserId => _auth.uid;
 
@@ -46,7 +51,54 @@ class DemandesController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadDemandes();
+    _ecouterDemandes();
+  }
+
+  @override
+  void onClose() {
+    _recuesSub?.cancel();
+    _envoyeesSub?.cancel();
+    super.onClose();
+  }
+
+  void _ecouterDemandes() {
+    final uid = currentUserId;
+    if (uid == null) {
+      isLoading.value = false;
+      return;
+    }
+
+    isLoading.value = true;
+
+    _recuesSub = _demandes.streamDemandesRecues(uid).listen(
+      (list) async {
+        demandesRecues.assignAll(list);
+        await _rafraichirUsers();
+        isLoading.value = false;
+      },
+      onError: (_) {
+        Get.snackbar('Erreur', 'Impossible de charger les demandes reçues.');
+        isLoading.value = false;
+      },
+    );
+
+    _envoyeesSub = _demandes.streamDemandesEnvoyees(uid).listen(
+      (list) async {
+        demandesEnvoyees.assignAll(list);
+        await _rafraichirUsers();
+      },
+      onError: (_) {
+        Get.snackbar('Erreur', 'Impossible de charger les demandes envoyées.');
+      },
+    );
+  }
+
+  Future<void> _rafraichirUsers() async {
+    final users = await _demandes.loadUsersFor([
+      ...demandesRecues,
+      ...demandesEnvoyees,
+    ]);
+    usersById.assignAll(users);
   }
 
   void selectTab(int index) => selectedTabIndex.value = index;
@@ -76,8 +128,6 @@ class DemandesController extends GetxController {
   Future<void> accepterDemande(String id) async {
     try {
       final updated = await _demandes.accepter(id);
-      final i = demandesRecues.indexWhere((d) => d.id == id);
-      if (i != -1) demandesRecues[i] = updated;
       Get.snackbar(
         'Demande acceptée',
         'Conversation créée. Tu peux discuter avec ton binôme.',
@@ -92,9 +142,7 @@ class DemandesController extends GetxController {
 
   Future<void> declinerDemande(String id) async {
     try {
-      final updated = await _demandes.decliner(id);
-      final i = demandesRecues.indexWhere((d) => d.id == id);
-      if (i != -1) demandesRecues[i] = updated;
+      await _demandes.decliner(id);
       Get.snackbar('Demande refusée', 'La demande a été refusée.');
     } catch (e) {
       Get.snackbar('Erreur', e.toString());

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:study_pair/models/demande_model.dart';
@@ -24,5 +23,9 @@ class MatchService extends GetxService {
           : message.trim(),
       helpType: helpType,
     );
+  }
+
+  Future<String> relationAvec(String partnerId) {
+    return Get.find<DemandeService>().relationAvec(partnerId);
   }
 }

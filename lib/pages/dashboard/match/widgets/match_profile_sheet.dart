@@ -17,6 +17,7 @@ Future<void> showMatchProfileSheet({
   required String description,
   required List<String> competences,
   String? photoUrl,
+  String relation = 'none',
   ValueChanged<String>? onProposer,
 }) {
   return showAppBottomSheet<void>(
@@ -29,6 +30,7 @@ Future<void> showMatchProfileSheet({
       description: description,
       competences: competences,
       photoUrl: photoUrl,
+      relation: relation,
       onProposer: onProposer,
     ),
   );
@@ -42,6 +44,7 @@ class _MatchProfileSheetBody extends StatefulWidget {
     required this.description,
     required this.competences,
     this.photoUrl,
+    this.relation = 'none',
     this.onProposer,
   });
 
@@ -51,6 +54,7 @@ class _MatchProfileSheetBody extends StatefulWidget {
   final String description;
   final List<String> competences;
   final String? photoUrl;
+  final String relation;
   final ValueChanged<String>? onProposer;
 
   @override
@@ -59,6 +63,10 @@ class _MatchProfileSheetBody extends StatefulWidget {
 
 class _MatchProfileSheetBodyState extends State<_MatchProfileSheetBody> {
   late final TextEditingController _message;
+
+  bool get _enAttente => widget.relation == 'pending';
+  bool get _amis => widget.relation == 'friends';
+  bool get _bloque => _enAttente || _amis;
 
   @override
   void initState() {
@@ -167,28 +175,49 @@ class _MatchProfileSheetBodyState extends State<_MatchProfileSheetBody> {
               ],
             ),
           ],
-          const VGap.lg(),
-          const AppText(
-            'Ton message',
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-          const VGap.sm(),
-          AppTextField(
-            controller: _message,
-            label: 'Message',
-            hint: 'Dis-lui pourquoi tu veux travailler ensemble…',
-            maxLines: 3,
-            textInputAction: TextInputAction.send,
-            onSubmitted: (_) => _submit(),
-          ),
-          const VGap.xl(),
-          AppButton(
-            label: 'Proposer un binôme',
-            icon: Icons.send_rounded,
-            onPressed: _submit,
-          ),
+          if (_bloque) ...[
+            const VGap.lg(),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: AppText(
+                _amis
+                    ? 'Vous êtes déjà en binôme ensemble'
+                    : 'Une demande est déjà en attente entre vous',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ] else ...[
+            const VGap.lg(),
+            const AppText(
+              'Ton message',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            const VGap.sm(),
+            AppTextField(
+              controller: _message,
+              label: 'Message',
+              hint: 'Dis-lui pourquoi tu veux travailler ensemble…',
+              maxLines: 3,
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => _submit(),
+            ),
+            const VGap.xl(),
+            AppButton(
+              label: 'Proposer un binôme',
+              icon: Icons.send_rounded,
+              onPressed: _submit,
+            ),
+          ],
           const VGap.md(),
         ],
       ),

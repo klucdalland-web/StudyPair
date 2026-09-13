@@ -10,10 +10,12 @@ class MeilleuresCorrespondancesSection extends StatelessWidget {
     super.key,
     required this.users,
     required this.onProposer,
+    this.relations = const {},
   });
 
   final List<UserModel> users;
   final void Function(UserModel user, {String message}) onProposer;
+  final Map<String, String> relations;
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +65,7 @@ class MeilleuresCorrespondancesSection extends StatelessWidget {
               final user = users[index];
               return ProfilMatchCard(
                 user: user,
+                relation: relations[user.id] ?? 'none',
                 onProposer: (message) => onProposer(user, message: message),
               );
             },
@@ -77,10 +80,12 @@ class ProfilMatchCard extends StatefulWidget {
     super.key,
     required this.user,
     required this.onProposer,
+    this.relation = 'none',
   });
 
   final UserModel user;
   final ValueChanged<String> onProposer;
+  final String relation;
 
   @override
   State<ProfilMatchCard> createState() => _ProfilMatchCardState();
@@ -88,6 +93,9 @@ class ProfilMatchCard extends StatefulWidget {
 
 class _ProfilMatchCardState extends State<ProfilMatchCard> {
   bool estFavoris = false;
+
+  bool get _enAttente => widget.relation == 'pending';
+  bool get _amis => widget.relation == 'friends';
 
   String get _statut {
     final parts = [
@@ -118,7 +126,8 @@ class _ProfilMatchCardState extends State<ProfilMatchCard> {
       description: _description,
       competences: widget.user.subjects,
       photoUrl: widget.user.photoUrl,
-      onProposer: widget.onProposer,
+      relation: widget.relation,
+      onProposer: (_enAttente || _amis) ? null : widget.onProposer,
     );
   }
 
@@ -162,13 +171,23 @@ class _ProfilMatchCardState extends State<ProfilMatchCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppText(
-                        name,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: AppText(
+                              name,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (_enAttente || _amis) ...[
+                            const SizedBox(width: 8),
+                            _RelationBadge(amis: _amis),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 2),
                       AppText(
@@ -199,6 +218,29 @@ class _ProfilMatchCardState extends State<ProfilMatchCard> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _RelationBadge extends StatelessWidget {
+  const _RelationBadge({required this.amis});
+
+  final bool amis;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: amis ? AppColors.success.withValues(alpha: 0.12) : Colors.orange.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: AppText(
+        amis ? 'Déjà binôme' : 'En attente',
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        color: amis ? AppColors.success : Colors.orange.shade800,
       ),
     );
   }
