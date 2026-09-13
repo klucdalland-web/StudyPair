@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -29,6 +31,7 @@ class _MatchPageState extends State<MatchPage> {
   final _scrollController = ScrollController();
 
   List<UserModel> _partners = [];
+  Map<String, String> _relations = {};
   DocumentSnapshot<Map<String, dynamic>>? _lastDoc;
   bool _loading = true;
   bool _loadingMore = false;
@@ -49,6 +52,7 @@ class _MatchPageState extends State<MatchPage> {
         _lastDoc = page.lastDoc;
         _hasMore = page.hasMore;
       });
+      unawaited(_loadRelations(page.users));
     } catch (e) {
       Get.snackbar('Erreur', e.toString());
     } finally {
@@ -75,11 +79,25 @@ class _MatchPageState extends State<MatchPage> {
         _lastDoc = page.lastDoc;
         _hasMore = page.hasMore && page.users.isNotEmpty;
       });
+      unawaited(_loadRelations(next));
     } catch (e) {
       Get.snackbar('Erreur', e.toString());
     } finally {
       if (mounted) setState(() => _loadingMore = false);
     }
+  }
+
+     Future<void> _loadRelations(List<UserModel> users) async {
+        final entries = await Future.wait<MapEntry<String, String>>(
+          users.map((u) async {
+            final statut = await _matches.relationAvec(u.id);
+            return MapEntry<String, String>(u.id, statut);
+          }),
+        );
+        if (!mounted) return;
+        setState(() {
+          _relations = {..._relations, ...Map.fromEntries(entries)};
+        });
   }
 
   void _onScroll() {
@@ -95,11 +113,16 @@ class _MatchPageState extends State<MatchPage> {
       final subject = partner.subjects.isNotEmpty
           ? partner.subjects.first
           : 'Général';
-      await _matches.requestMatch(partnerId: partner.id, subject: subject);
+      await _matches.requestMatch(
+        partnerId: partner.id,
+        subject: subject,
+        message: message,
+      );
       final suffix = message.isEmpty
           ? ''
           : ' — « ${message.length > 40 ? '${message.substring(0, 40)}…' : message} »';
       Get.snackbar('Match', 'Demande envoyée à ${partner.displayName}$suffix');
+      unawaited(_loadRelations([partner]));
     } catch (e) {
       Get.snackbar('Erreur', e.toString());
     }
@@ -152,6 +175,7 @@ class _MatchPageState extends State<MatchPage> {
                             MesMatchsComplet(count: _partners.length),
                             MeilleuresCorrespondancesSection(
                               users: _partners,
+                              relations: _relations,
                               onProposer: _request,
                             ),
                             if (_loadingMore) const MatchLoadMoreSkeleton(),

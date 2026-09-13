@@ -73,7 +73,37 @@ class DemandeService extends GetxService {
     );
     return demande;
   }
+    Stream<List<DemandeModel>> streamDemandesRecues([String? userId]) {
+    final uid = userId ?? _uid;
+    return _demandes
+        .where('receiverId', isEqualTo: uid)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      final demandes = snapshot.docs.map(DemandeModel.fromDoc);
+      final result = await _expireIfNeeded(demandes);
+      return _sorted(result);
+    });
+  }
 
+  Stream<List<DemandeModel>> streamDemandesEnvoyees([String? userId]) {
+    final uid = userId ?? _uid;
+    return _demandes
+        .where('senderId', isEqualTo: uid)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      final demandes = snapshot.docs.map(DemandeModel.fromDoc);
+      final result = await _expireIfNeeded(demandes);
+      return _sorted(result);
+    });
+  }
+    /// Statut de la relation entre l'utilisateur connecté et [otherUserId].
+  /// Retourne 'friends', 'pending', ou 'none'.
+  Future<String> relationAvec(String otherUserId) async {
+    final uid = _uid;
+    if (await _areFriends(uid, otherUserId)) return 'friends';
+    if (await _hasPendingDemandeBetween(uid, otherUserId)) return 'pending';
+    return 'none';
+  }
   /// Vrai si une demande "pending" et non expirée existe déjà entre les deux
   /// utilisateurs, dans un sens ou dans l'autre.
   Future<bool> _hasPendingDemandeBetween(String userA, String userB) async {

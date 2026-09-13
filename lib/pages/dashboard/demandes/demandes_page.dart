@@ -80,7 +80,7 @@ class DemandesPage extends GetView<DemandesController> {
               user?.level,
             ].where((e) => e != null && e.toString().isNotEmpty).join(' · ');
 
-            return Padding(
+                        return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: DemandeCard(
                 demande: demande,
