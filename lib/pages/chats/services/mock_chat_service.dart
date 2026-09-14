@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:get/get.dart';
 
-import '../../../../models/chat_model.dart';
-import '../../../../models/message_model.dart';
-import '../../../../models/user_model.dart';
+import '../../../models/chat_model.dart';
+import '../../../models/message_model.dart';
+import '../../../models/user_model.dart';
 
 class MockChatService extends GetxService {
   final List<UserModel> _users = [

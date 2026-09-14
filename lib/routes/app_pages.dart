@@ -4,7 +4,7 @@ import 'package:study_pair/controller/profile_controller.dart';
 
 import '../pages/auth/login/login_page.dart';
 import '../pages/auth/register/register_page.dart';
-import '../pages/dashboard/chat/chat_page.dart';
+import '../pages/chat/chat_page.dart';
 import '../pages/dashboard/dashboard_binding.dart';
 import '../pages/dashboard/dashboard_page.dart';
 import '../pages/dashboard/profile/profile_page.dart';

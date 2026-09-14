@@ -1,10 +1,9 @@
 import 'package:get/get.dart';
-
 import '../services/auth_service.dart';
-import '../pages/dashboard/chats/services/chat_service.dart';
+import '../pages/chats/services/chat_service.dart';
 import '../services/match_service.dart';
 import '../services/user_service.dart';
-import '../pages/dashboard/chats/services/mock_chat_service.dart';
+import 'package:study_pair/pages/chats/services/mock_chat_service.dart';
 
 /// Injection globale des services GetX.
 class InitialBinding extends Bindings {

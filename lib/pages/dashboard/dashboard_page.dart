@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../widgets/app_scaffold.dart';
-import 'chats/chats_page.dart';
+import '../chats/chats_page.dart';
 import 'dashboard_controller.dart';
 import 'home/home_page.dart';
 import 'match/match_page.dart';
-import 'planning/planning_page.dart';
+import '../planning/planning_page.dart';
 import 'widgets/dashboard_bottom_nav.dart';
 
 /// Shell après auth : onglets + bottom navigation.

@@ -143,7 +143,6 @@ class DemandeService extends GetxService {
         error: e,
         stackTrace: stackTrace,
       );
-
       return false;
     }
   }

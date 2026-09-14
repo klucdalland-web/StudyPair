@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:study_pair/pages/dashboard/chats/services/mock_chat_service.dart';
+import 'package:study_pair/pages/chats/services/mock_chat_service.dart';
 
 import '../models/chat_model.dart';
 import '../models/message_model.dart';

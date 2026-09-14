@@ -54,4 +54,24 @@ abstract class AppColors {
 
   // Icones
   static const Color blueIcon = Color(0xFFD3E4FE);
+
+  //Badges
+  static const badgeBlueBg = Color(0xFFE6F1FB);
+  static const badgeBlueText = Color(0xFF0C447C);
+  static const badgeGreenBg = Color(0xFFEAF3DE);
+  static const badgeGreenText = Color(0xFF27500A);
+
+  //Card
+  static const bgCard = Colors.white;
+
+  //autres
+   static const bgPage = Color(0xFFF3F2FB);
+  static const bgQuote = Color(0xFFF1F0FB);
+
+ 
 }
+ 
+
+ 
+
+

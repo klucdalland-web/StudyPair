@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:study_pair/models/chat_model.dart';
 import 'package:study_pair/models/user_model.dart';
-import 'package:study_pair/pages/dashboard/chats/services/mock_chat_service.dart';
-import 'package:study_pair/pages/dashboard/chats/widgets/chat_tile.dart';
+import 'package:study_pair/pages/chats/services/mock_chat_service.dart';
+import 'package:study_pair/pages/chats/widgets/chat_tile.dart';
 import 'package:study_pair/routes/app_routes.dart';
 import 'package:study_pair/services/auth_service.dart';
 import 'package:study_pair/theme/app_colors.dart';
@@ -59,34 +59,35 @@ class _ChatsPageState extends State<ChatsPage> {
         child: ListView.separated(
           shrinkWrap: true,
           itemCount: contacts.length,
-          separatorBuilder: (_, _) => const Divider(
-            height: 1,
-            color: AppColors.divider,
-          ),
+          separatorBuilder: (_, _) =>
+              const Divider(height: 1, color: AppColors.divider),
           itemBuilder: (_, i) {
             final user = contacts[i];
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: AppAvatar(
-                imageUrl: user.photoUrl,
-                name: user.displayName,
-                size: 44,
-                online: user.isOnline,
+            return Material(
+              color: Colors.transparent,
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: AppAvatar(
+                  imageUrl: user.photoUrl,
+                  name: user.displayName,
+                  size: 44,
+                  online: user.isOnline,
+                ),
+                title: AppText(
+                  user.displayName,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+                subtitle: AppText(
+                  user.level ?? user.email,
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onTap: () => Navigator.of(context).pop(user),
               ),
-              title: AppText(
-                user.displayName,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-              subtitle: AppText(
-                user.level ?? user.email,
-                fontSize: 12,
-                color: AppColors.textSecondary,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              onTap: () => Navigator.of(context).pop(user),
             );
           },
         ),
@@ -164,8 +165,7 @@ class _ChatsPageState extends State<ChatsPage> {
                 return SliverFillRemaining(
                   hasScrollBody: false,
                   child: EmptyView(
-                    message:
-                        'Aucune conversation.\nDémarrez un échange avec un binôme ou un tuteur.',
+                    message: 'Aucune conversation.\nDémarrez un échange avec un binôme ou un tuteur.',
                     icon: Icons.chat_bubble_outline_rounded,
                     actionLabel: 'Créer une conversation',
                     onAction: _createConversation,
