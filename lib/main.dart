@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -15,18 +16,18 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print(
+    debugPrint(
       '🔥 Firebase OK — project: ${DefaultFirebaseOptions.currentPlatform.projectId}',
     );
-    print('📱 App ID: ${DefaultFirebaseOptions.currentPlatform.appId}');
+    debugPrint('📱 App ID: ${DefaultFirebaseOptions.currentPlatform.appId}');
   } catch (e, st) {
-    print('❌ Firebase FAIL — init impossible');
-    print('❌ $e');
-    print('📜 $st');
+    debugPrint('❌ Firebase FAIL — init impossible');
+    debugPrint('❌ $e');
+    debugPrint('📜 $st');
   }
 
   await InitialBinding.init();
-  print('🧩 Services GetX prêts (Auth, User, Match, Chat)');
+  debugPrint('🧩 Services GetX prêts (Auth, User, Match, Chat)');
 
   runApp(const StudyPairApp());
 }

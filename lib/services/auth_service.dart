@@ -24,12 +24,12 @@ class AuthService extends GetxService {
 
   Future<AuthService> init() async {
     if (kDebugMode) {
-      print('🔐 AuthService init…');
+      debugPrint('🔐 AuthService init…');
     }
     _auth.authStateChanges().listen((firebaseUser) async {
-      if (firebaseUser == null) {
+if (firebaseUser == null) {
         if (kDebugMode) {
-          print('👋 Auth: déconnecté');
+          debugPrint('👋 Auth: déconnecté');
         }
         user.value = null;
         return;
@@ -224,5 +224,5 @@ class AuthService extends GetxService {
       print('❌ Firestore FAIL (profil) → $e');
       rethrow;
     }
-  }
+  }b
 }
