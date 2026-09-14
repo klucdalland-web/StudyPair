@@ -226,7 +226,9 @@ class ConversationService extends GetxService {
     batch.set(_conversations.doc(conversationId), {
       'lastMessage': content,
       'lastMessageAt': FieldValue.serverTimestamp(),
+      'lastMessageSenderId': senderId,
     }, SetOptions(merge: true));
+    await batch.commit();
     await batch.commit();
   }
 

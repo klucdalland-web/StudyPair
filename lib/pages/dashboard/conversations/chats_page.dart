@@ -347,7 +347,11 @@ class _ChatsPageState extends State<ChatsPage> {
               return SoftEmpty(onCreate: _onCreatePressed);
             }
 
-            return SoftList(conversations: list, tileUser: _tileUser);
+            return SoftList(
+              conversations: list,
+              tileUser: _tileUser,
+              currentUserId: _currentUserId, // <-- nouveau
+            );
           }),
         ],
       ),
@@ -386,10 +390,12 @@ class SoftList extends StatelessWidget {
     super.key,
     required this.conversations,
     required this.tileUser,
+    required this.currentUserId,
   });
 
   final List<ConversationModel> conversations;
   final UserModel Function(ConversationModel c) tileUser;
+  final String currentUserId;
 
   @override
   Widget build(BuildContext context) {
@@ -408,6 +414,7 @@ class SoftList extends StatelessWidget {
           return ChatTile(
             conversation: conversation,
             user: tileUser(conversation),
+            currentUserId: currentUserId,
             onTap: () => Get.toNamed(
               Routes.chatPath(conversation.id),
               arguments: conversation,

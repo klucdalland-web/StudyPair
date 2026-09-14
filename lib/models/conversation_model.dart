@@ -28,6 +28,7 @@ class ConversationModel {
     this.createdAt,
     this.lastMessage,
     this.lastMessageAt,
+    this.lastMessageSenderId,
     this.lastReadAt,
   });
 
@@ -38,6 +39,7 @@ class ConversationModel {
   final DateTime? createdAt;
   final String? lastMessage;
   final DateTime? lastMessageAt;
+  final String? lastMessageSenderId;
   final Map<String, DateTime>? lastReadAt;
 
   bool get isGroup => participants.length > 2;
@@ -62,9 +64,13 @@ class ConversationModel {
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
       lastMessage: data['lastMessage'] as String?,
       lastMessageAt: (data['lastMessageAt'] as Timestamp?)?.toDate(),
-      lastReadAt: (data['lastReadAt'] as Map<String, dynamic>? ?? {}).map(
-        (k, v) => MapEntry(k, (v as Timestamp).toDate()),
-      ),
+      lastMessageSenderId: data['lastMessageSenderId'] as String?,
+      lastReadAt: {
+        for (final entry
+            in (data['lastReadAt'] as Map<String, dynamic>? ?? {}).entries)
+          if (entry.value is Timestamp)
+            entry.key: (entry.value as Timestamp).toDate(),
+      },
     );
   }
 
@@ -78,6 +84,7 @@ class ConversationModel {
     'lastMessageAt': lastMessageAt != null
         ? Timestamp.fromDate(lastMessageAt!)
         : FieldValue.serverTimestamp(),
+    'lastMessageSenderId': lastMessageSenderId,
     if (isNew) 'createdAt': FieldValue.serverTimestamp(),
     if (isNew && lastReadAt != null)
       'lastReadAt': lastReadAt!.map(

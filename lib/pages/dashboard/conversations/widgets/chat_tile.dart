@@ -11,19 +11,45 @@ class ChatTile extends StatelessWidget {
     super.key,
     required this.conversation,
     required this.user,
+    required this.currentUserId,
     this.onTap,
   });
 
   final ConversationModel conversation;
   final UserModel user;
+  final String currentUserId;
   final VoidCallback? onTap;
+
+  bool get _isLastMessageMine =>
+      conversation.lastMessageSenderId == currentUserId;
+
+  bool get _isUnread {
+    if (_isLastMessageMine) return false;
+    final lastMessageAt = conversation.lastMessageAt;
+    if (lastMessageAt == null) return false;
+    final lastReadAt = conversation.lastReadAt?[currentUserId];
+    return lastReadAt == null || lastReadAt.isBefore(lastMessageAt);
+  }
+
+  String? get _authorLabel {
+    final senderId = conversation.lastMessageSenderId;
+    if (senderId == null) return null;
+    if (_isLastMessageMine) return 'Vous';
+    return conversation.participantsInfo[senderId]?.displayName ??
+        user.displayName;
+  }
 
   @override
   Widget build(BuildContext context) {
     final isGroup = conversation.isGroup;
+    final hasMessage = conversation.lastMessage?.trim().isNotEmpty == true;
+    final author = _authorLabel;
+    final isUnread = _isUnread;
 
-    final preview = conversation.lastMessage?.trim().isNotEmpty == true
-        ? conversation.lastMessage!
+    final preview = hasMessage
+        ? (author != null && author.isNotEmpty
+              ? '$author : ${conversation.lastMessage!}'
+              : conversation.lastMessage!)
         : (isGroup
               ? '${conversation.participants.length} membres'
               : ((user.level?.isNotEmpty ?? false)
@@ -91,7 +117,10 @@ class ChatTile extends StatelessWidget {
                     AppText(
                       preview,
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      fontWeight: isUnread ? FontWeight.w700 : FontWeight.w400,
+                      color: isUnread
+                          ? AppColors.textPrimary
+                          : AppColors.textSecondary,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

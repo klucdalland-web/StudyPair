@@ -52,12 +52,8 @@ class ChatController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _chatSub = _service.watchConversation(chatId).listen((c) {
-      chat.value = c;
-    });
 
     final args = Get.arguments;
-
     String? id;
     if (args is String) {
       id = args;
@@ -76,6 +72,9 @@ class ChatController extends GetxController {
     chatId = id;
     _listenChat();
     _loadMe();
+
+    // marque comme lu dès l'ouverture
+    _service.markAsRead(chatId, currentUserId);
   }
 
   @override
@@ -150,9 +149,6 @@ class ChatController extends GetxController {
         .watchFriendship(currentUserId, otherId)
         .listen((areFriends) => isValidated.value = areFriends);
   }
-
-  Stream<List<MessageModel>> get messagesStream =>
-      _service.watchMessages(chatId);
 
   bool isMine(MessageModel m) => m.senderId == currentUserId;
 
