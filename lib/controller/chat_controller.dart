@@ -177,7 +177,10 @@ class ChatController extends GetxController {
     );
   }
 
-  void goBack() => Get.back();
+  void goBack() {
+    Get.delete<ChatController>();
+    Get.back();
+  }
 }
 
 class ChatBinding extends Bindings {
