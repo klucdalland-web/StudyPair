@@ -10,6 +10,7 @@ class DemandeCard extends StatelessWidget {
   const DemandeCard({
     super.key,
     required this.demande,
+    required this.currentUserId,
     this.nomUtilisateur,
     this.sousTitreUtilisateur,
     this.avatarUrl,
@@ -18,6 +19,7 @@ class DemandeCard extends StatelessWidget {
   });
 
   final DemandeModel demande;
+  final String currentUserId;
 
   /// Informations provenant du profil de l'utilisateur.
   final String? nomUtilisateur;
@@ -29,9 +31,10 @@ class DemandeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final estEnvoyee = demande.estEnvoyeePar(demande.senderId);
+    final estEnvoyee = demande.estEnvoyeePar(currentUserId);
 
     return Container(
+      // ... reste inchangé
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -271,27 +274,54 @@ class _Actions extends StatelessWidget {
     );
   }
 }
-
 class _StatutEnvoi extends StatelessWidget {
   const _StatutEnvoi({required this.statut});
 
   final String statut;
 
+  _StatutPalette get _palette {
+    switch (statut) {
+      case DemandeStatus.accepted:
+        return _StatutPalette(
+          background: AppColors.success.withValues(alpha: 0.12),
+          foreground: AppColors.success,
+        );
+      case DemandeStatus.declined:
+        return _StatutPalette(
+          background: Colors.red.withValues(alpha: 0.10),
+          foreground: Colors.red.shade700,
+        );
+      case DemandeStatus.expired:
+        return _StatutPalette(
+          background: Colors.grey.withValues(alpha: 0.15),
+          foreground: Colors.grey.shade600,
+        );
+      case DemandeStatus.pending:
+      default:
+        return _StatutPalette(
+          background: Colors.orange.withValues(alpha: 0.12),
+          foreground: Colors.orange.shade800,
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final palette = _palette;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 10),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: palette.background,
         borderRadius: BorderRadius.circular(12),
       ),
       child: AppText(
         _labelStatut(statut),
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: AppColors.textSecondary,
+        color: palette.foreground,
       ),
     );
   }
@@ -312,4 +342,11 @@ class _StatutEnvoi extends StatelessWidget {
         return 'En attente de réponse';
     }
   }
+}
+
+class _StatutPalette {
+  const _StatutPalette({required this.background, required this.foreground});
+
+  final Color background;
+  final Color foreground;
 }

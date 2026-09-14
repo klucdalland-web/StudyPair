@@ -1,105 +1,193 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:study_pair/pages/dashboard/chats/services/mock_chat_service.dart';
+import 'package:study_pair/models/conversation_model.dart';
+import 'package:study_pair/models/message_model.dart';
+import 'package:study_pair/models/user_model.dart';
+import 'package:study_pair/services/auth_service.dart';
+import 'package:study_pair/services/conversation_service.dart';
+import 'package:study_pair/services/demande_service.dart';
 
-import '../models/chat_model.dart';
-import '../models/message_model.dart';
-import '../models/user_model.dart';
-import '../routes/app_routes.dart';
-import '../services/auth_service.dart';
+enum MessageStatus { sent, delivered, read }
+
+extension MessageStatusX on MessageStatus {
+  IconData get icon => switch (this) {
+    MessageStatus.sent => Icons.check_rounded,
+    MessageStatus.delivered => Icons.done_all_rounded,
+    MessageStatus.read => Icons.done_all_rounded,
+  };
+  Color get color => switch (this) {
+    MessageStatus.sent => Colors.grey,
+    MessageStatus.delivered => Colors.grey.shade600,
+    MessageStatus.read => Colors.blue,
+  };
+}
 
 class ChatController extends GetxController {
-  final MockChatService _chats = Get.find<MockChatService>();
-  final AuthService _auth = Get.find<AuthService>();
-  final TextEditingController inputController = TextEditingController();
+  ChatController({ConversationService? service})
+    : _service = service ?? Get.find<ConversationService>();
 
-  // ─────────── État ───────────
-  final Rxn<ChatModel> chat = Rxn<ChatModel>();
+  final ConversationService _service;
+
+  AuthService get _auth => Get.find<AuthService>();
+
+  String get currentUserId => _auth.uid ?? '';
+
+  late final String chatId;
+
+  final Rx<ConversationModel?> chat = Rx<ConversationModel?>(null);
+  final Rxn<String> error = Rxn<String>();
   final Rxn<UserModel> otherUser = Rxn<UserModel>();
-  final RxnString error = RxnString();
   final RxBool isValidated = false.obs;
 
-  Stream<List<MessageModel>>? _messagesStream;
-  Stream<List<MessageModel>>? get messagesStream => _messagesStream;
+  final TextEditingController inputController = TextEditingController();
+  bool get isGroup => chat.value?.isGroup ?? false;
+  StreamSubscription<ConversationModel?>? _chatSub;
+  StreamSubscription<bool>? _friendshipSub;
+
+  String? _otherUserId;
+  UserModel? _me;
 
   @override
   void onInit() {
     super.onInit();
-    _initFromArguments();
-  }
+    _chatSub = _service.watchConversation(chatId).listen((c) {
+      chat.value = c;
+    });
 
-  // ─────────── Initialisation ───────────
-  void _initFromArguments() {
     final args = Get.arguments;
-    final chatId = Get.parameters['chatId'];
 
-    if (args is ChatModel) {
+    String? id;
+    if (args is String) {
+      id = args;
+    } else if (args is ConversationModel) {
+      id = args.id;
       chat.value = args;
-      isValidated.value = args.isValidated;
-
-      final otherId = args.participantIds.firstWhere(
-        (id) => id != _auth.uid,
-        orElse: () => '',
-      );
-
-      if (otherId.isNotEmpty) {
-        otherUser.value = _chats.getUserById(otherId);
-      }
-
-      _messagesStream = _chats.watchMessages(args.id);
-    } else if (chatId != null && chatId.isNotEmpty) {
-      chat.value = ChatModel(
-        id: chatId,
-        participantIds: const [],
-        isValidated: false,
-      );
-      _messagesStream = _chats.watchMessages(chatId);
     } else {
-      error.value = 'Conversation introuvable';
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.offNamed(Routes.dashboard);
-      });
+      id = Get.parameters['id'];
     }
-  }
 
-  // ─────────── Actions ───────────
-  bool isMine(MessageModel m) => m.senderId == _auth.uid;
-
-  Future<void> send() async {
-    final c = chat.value;
-    if (c == null) return;
-
-    final text = inputController.text.trim();
-    if (text.isEmpty) return;
-
-    try {
-      await _chats.sendMessage(c.id, text, DateTime.now());
-      inputController.clear();
-    } catch (e) {
-      Get.snackbar('Erreur', e.toString());
+    if (id == null || id.isEmpty) {
+      error.value = 'Conversation introuvable.';
+      return;
     }
+
+    chatId = id;
+    _listenChat();
+    _loadMe();
   }
-
-  Future<void> validate() async {
-    final c = chat.value;
-    if (c == null || isValidated.value) return;
-
-    await _chats.validateChat(c.id);
-    isValidated.value = true;
-  }
-
-  void goBack() => Get.back<void>();
 
   @override
   void onClose() {
+    _chatSub?.cancel();
+    _friendshipSub?.cancel();
     inputController.dispose();
     super.onClose();
   }
+
+  void _listenChat() {
+    _chatSub = _service.watchConversation(chatId).listen((c) {
+      chat.value = c;
+      if (c == null) return;
+
+      final otherId = c.otherParticipant(currentUserId);
+      if (_otherUserId != otherId) {
+        _otherUserId = otherId;
+        _loadOtherUser(otherId);
+        _watchFriendship(otherId);
+      }
+    }, onError: (_) => error.value = 'Erreur de chargement.');
+  }
+
+  Stream<List<MessageModel>> get messagesStream =>
+      _service.watchMessages(chatId).map((list) {
+        if (list.isNotEmpty && list.first.createdAt != _lastSeen) {
+          _lastSeen = list.first.createdAt;
+          _service.markAsRead(chatId, currentUserId);
+        }
+        return list;
+      });
+
+  DateTime? _lastSeen;
+
+  /// Renvoie le statut d'un message que J'AI envoyé.
+  MessageStatus statusFor(MessageModel m) {
+    final c = chat.value;
+    if (c == null || m.createdAt == null) return MessageStatus.sent;
+
+    final others = c.participants.where((id) => id != currentUserId).toList();
+    if (others.isEmpty) return MessageStatus.sent;
+
+    final allRead = others.every((uid) {
+      final t = c.lastReadAt?[uid];
+      return t != null && !t.isBefore(m.createdAt!);
+    });
+    return allRead ? MessageStatus.read : MessageStatus.sent;
+  }
+
+  int readCountFor(MessageModel m) {
+    final c = chat.value;
+    if (c == null || m.createdAt == null) return 0;
+    return c.participants.where((id) {
+      if (id == currentUserId) return false;
+      final t = c.lastReadAt?[id];
+      return t != null && !t.isBefore(m.createdAt!);
+    }).length;
+  }
+
+  Future<void> _loadMe() async {
+    _me = await _service.getUser(currentUserId);
+  }
+
+  Future<void> _loadOtherUser(String otherId) async {
+    otherUser.value = await _service.getUser(otherId);
+  }
+
+  void _watchFriendship(String otherId) {
+    _friendshipSub?.cancel();
+    _friendshipSub = _service
+        .watchFriendship(currentUserId, otherId)
+        .listen((areFriends) => isValidated.value = areFriends);
+  }
+
+  Stream<List<MessageModel>> get messagesStream =>
+      _service.watchMessages(chatId);
+
+  bool isMine(MessageModel m) => m.senderId == currentUserId;
+
+  Future<void> send() async {
+    final text = inputController.text.trim();
+    if (text.isEmpty) return;
+
+    _me ??= await _service.getUser(currentUserId);
+
+    inputController.clear();
+    await _service.sendMessage(
+      conversationId: chatId,
+      senderId: currentUserId,
+      senderName: _me?.displayName ?? '',
+      senderPhotoUrl: _me?.photoUrl,
+      content: text,
+    );
+  }
+
+  Future<void> validate() async {
+    if (_otherUserId == null) return;
+    await Get.find<DemandeService>().create(
+      receiverId: _otherUserId!,
+      subject: 'Étudier ensemble',
+      message: 'Salut, on continue en tant que study buddies ?',
+    );
+  }
+
+  void goBack() => Get.back();
 }
 
 class ChatBinding extends Bindings {
   @override
   void dependencies() {
+    Get.lazyPut<ConversationService>(() => ConversationService());
     Get.lazyPut<ChatController>(() => ChatController());
   }
 }

@@ -13,31 +13,31 @@ class Categoriesection extends StatelessWidget {
 
   static const _categories =
       <({IconData icon, Color color, String title, VoidCallback onTap})>[
-    (
-      icon: Icons.mail_outline_rounded,
-      color: Color(0xFF605CF4),
-      title: 'Demandes',
-      onTap: _openDemandes,
-    ),
-    (
-      icon: Icons.school_outlined,
-      color: Color(0xFFA11647),
-      title: 'Étudiant',
-      onTap: _openMatchs,
-    ),
-    (
-      icon: Icons.schedule_outlined,
-      color: Color(0xFF4391FF),
-      title: 'Créneaux',
-      onTap: _openPlanning,
-    ),
-    (
-      icon: Icons.more_horiz_rounded,
-      color: Color(0xFF7182F2),
-      title: 'Plus',
-      onTap: _openProfile,
-    ),
-  ];
+        (
+          icon: Icons.mail_outline_rounded,
+          color: Color(0xFF605CF4),
+          title: 'Demandes',
+          onTap: _openDemandes,
+        ),
+        (
+          icon: Icons.school_outlined,
+          color: Color(0xFFA11647),
+          title: 'Étudiant',
+          onTap: _openMatchs,
+        ),
+        (
+          icon: Icons.schedule_outlined,
+          color: Color(0xFF4391FF),
+          title: 'Créneaux',
+          onTap: _openPlanning,
+        ),
+        (
+          icon: Icons.more_horiz_rounded,
+          color: Color(0xFF7182F2),
+          title: 'Plus',
+          onTap: _openProfile,
+        ),
+      ];
 
   static void _openDemandes() {
     Get.to<void>(

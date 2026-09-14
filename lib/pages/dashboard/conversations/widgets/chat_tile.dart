@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:study_pair/models/chat_model.dart';
+import 'package:study_pair/models/conversation_model.dart';
 import 'package:study_pair/models/user_model.dart';
 import 'package:study_pair/theme/app_colors.dart';
 import 'package:study_pair/widgets/app_avatar.dart';
@@ -9,20 +9,26 @@ import 'package:study_pair/widgets/gap.dart';
 class ChatTile extends StatelessWidget {
   const ChatTile({
     super.key,
-    required this.chat,
+    required this.conversation,
     required this.user,
     this.onTap,
   });
 
-  final ChatModel chat;
+  final ConversationModel conversation;
   final UserModel user;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final preview = chat.lastMessage?.trim().isNotEmpty == true
-        ? chat.lastMessage!
-        : (user.level ?? 'Nouvelle conversation');
+    final isGroup = conversation.isGroup;
+
+    final preview = conversation.lastMessage?.trim().isNotEmpty == true
+        ? conversation.lastMessage!
+        : (isGroup
+              ? '${conversation.participants.length} membres'
+              : ((user.level?.isNotEmpty ?? false)
+                    ? user.level!
+                    : 'Nouvelle conversation'));
 
     return Material(
       color: Colors.transparent,
@@ -33,12 +39,27 @@ class ChatTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
           child: Row(
             children: [
-              AppAvatar(
-                imageUrl: user.photoUrl,
-                name: user.displayName,
-                size: 52,
-                online: user.isOnline,
-              ),
+              if (isGroup)
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primarySoft,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.groups_rounded,
+                    color: AppColors.primary,
+                    size: 26,
+                  ),
+                )
+              else
+                AppAvatar(
+                  imageUrl: user.photoUrl,
+                  name: user.displayName,
+                  size: 52,
+                  online: user.isOnline,
+                ),
               const HGap.md(),
               Expanded(
                 child: Column(
@@ -49,7 +70,7 @@ class ChatTile extends StatelessWidget {
                         Expanded(
                           child: AppText(
                             user.displayName.isEmpty
-                                ? 'Utilisateur'
+                                ? (isGroup ? 'Groupe' : 'Utilisateur')
                                 : user.displayName,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -58,9 +79,9 @@ class ChatTile extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (chat.lastMessageAt != null)
+                        if (conversation.lastMessageAt != null)
                           AppText(
-                            _formatTime(chat.lastMessageAt!),
+                            _formatTime(conversation.lastMessageAt!),
                             fontSize: 12,
                             color: AppColors.textTertiary,
                           ),
